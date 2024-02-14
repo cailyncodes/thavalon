@@ -1,18 +1,58 @@
 from http.server import BaseHTTPRequestHandler
 import copy
+import json
 import os
 import random
 import shutil
 import sys
+
+def _hold():
+			if not (6 <= len(sys.argv) <= 11):
+				print("Invalid number of players")
+				exit(1)
+
+			players = sys.argv[1:]
+			num_players = len(players)
+			players = set(players) # use as set to avoid duplicate players
+			players = list(players) # convert to list
+			random.shuffle(players) # ensure random order, though set should already do that
+			if len(players) != num_players:
+				print("No duplicate player names")
+				exit(1)
+
+			get_player_info(players)
  
 class handler(BaseHTTPRequestHandler):
  
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type','text/plain')
-        self.end_headers()
-        self.wfile.write('Hello, world!'.encode('utf-8'))
-        return
+		def do_POST(self):
+			# parse request body as json
+			content_length = int(self.headers['Content-Length'])
+			body = self.rfile.read(content_length)
+			data = json.loads(body)
+			
+			players = data.get("players", [])
+			num_players = len(players)
+			if not (6 <= num_players <= 11):
+				self.send_response(400)
+				self.send_header('Content-type','application/json')
+				self.end_headers()
+				self.wfile.write('{"error":"Invalid number of players"}'.encode('utf-8'))
+				return
+
+			players = set(players) # use as set to avoid duplicate players
+			players = list(players) # convert to list
+			random.shuffle(players) # ensure random order, though set should already do that
+			if len(players) != num_players:
+				print("No duplicate player names")
+				exit(1)
+
+			computedData = get_player_info(players)
+
+			self.send_response(200)
+			self.send_header('Content-type','application/json')
+			self.end_headers()
+			self.wfile.write(json.dumps(computedData).encode('utf-8'))
+			return
 
 # get_role_descriptions - this is called when information files are generated.
 def get_role_description(role):
@@ -87,9 +127,6 @@ class Player():
 
 def get_player_info(player_names):
 	num_players = len(player_names)
-	if len(player_names) != num_players:
-		print('ERROR: Duplicate player names.')
-		exit(1)
 
 	# create player objects
 	players = []
@@ -201,43 +238,16 @@ def get_player_info(player_names):
 		if ep.is_assassin:
 			ep.add_info(['You are the Assassin.'])
 
-	# delete and recreate game directory
-	if os.path.isdir("game"):
-		shutil.rmtree("game")
-	os.mkdir("game")
-
 	bar = '----------------------------------------\n'
+	data = {}
 	for player in players:
 		player.string = bar+'You are '+player.role+' ['+player.team+']\n'+bar+get_role_description(player.role)+'\n'+bar+'\n'.join(player.info)+'\n'+bar
-		player_file = "game/{}".format(player.name)
-		with open(player_file,"w") as file: 
-			file.write(player.string)
+		data[player.name] = player.string
 
 	first_player = random.sample(players,1)[0]
-	with open("game/start", "w") as file:
-		file.write("The player proposing the first mission is {}.".format(first_player.name))
-		#file.write("\n" + second_mission_starter + " is the starting player of the 2nd round.\n")
+	data['start'] = "The player proposing the first mission is {}.".format(first_player.name)
 
-	with open("game/DoNotOpen", "w") as file:
-		file.write("Player -> Role\n\nGOOD TEAM:\n")
-		for gp in good_players:
-			file.write("{} -> {}\n".format(gp.name,gp.role))
-		file.write("\nEVIL TEAM:\n")
-		for ep in evil_players:
-			file.write("{} -> {}\n".format(ep.name,ep.role))
+	data['doNotOpen'] = "Player -> Role\n\nGOOD TEAM:\n" + '\n'.join(["{} -> {}".format(gp.name,gp.role) for gp in good_players]) + "\n\nEVIL TEAM:\n" + '\n'.join(["{} -> {}".format(ep.name,ep.role) for ep in evil_players])
 
-if __name__ == "__main__":
-	if not (6 <= len(sys.argv) <= 11):
-		print("Invalid number of players")
-		exit(1)
-
-	players = sys.argv[1:]
-	num_players = len(players)
-	players = set(players) # use as set to avoid duplicate players
-	players = list(players) # convert to list
-	random.shuffle(players) # ensure random order, though set should already do that
-	if len(players) != num_players:
-		print("No duplicate player names")
-		exit(1)
-
-	get_player_info(players)
+	data["players"] = [p.name for p in players]
+	return data

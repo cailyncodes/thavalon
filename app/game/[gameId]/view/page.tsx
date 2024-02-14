@@ -1,9 +1,4 @@
-// file for viewing all the game data
-// for each player with a link to their custom page
-
 import { getGame } from '../../index'
-import { FormData } from 'next'
-import { useRouter } from 'next/navigation'
 import React from 'react'
 
 export default async function GameHome({
@@ -23,7 +18,7 @@ export default async function GameHome({
           <div className="flex flex-col justify-center items-center w-full mb-6 lg:mb-12">
             {game.players.map((player, index) => (
               <div key={index} className="flex flex-row justify-center items-center w-full">
-                <a href={`/game/${params.gameId}/view/${player.toLowerCase()}`}>{player}</a>
+                <a href={`/game/${params.gameId}/view/${player}`}>{player}</a>
               </div>
             ))}
           </div>

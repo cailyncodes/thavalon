@@ -1,7 +1,6 @@
 "use client"
 import React from 'react'
 import { startGame } from '../index'
-import { FormData } from 'next'
 
 export const GameManager = (props: { gameId: string }) => {
   const [players, setPlayers] = React.useState<string[]>([]);

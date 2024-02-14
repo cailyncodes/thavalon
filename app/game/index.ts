@@ -24,7 +24,20 @@ export async function startGame(data: { gameId: string, players: string[] }) {
     players: data.players,
   }
 
-  const file = new Blob([JSON.stringify(game)], { type: "application/json" });
+  const response = await fetch(
+    `http://${process.env.VERCEL_URL}/api/game`,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(game),
+    }
+  )
+
+  const gameData = await response.json()
+
+  const file = new Blob([JSON.stringify(gameData)], { type: "application/json" });
   await put(data.gameId, file, {
     access: 'public',
     addRandomSuffix: false,

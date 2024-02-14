@@ -1,6 +1,5 @@
 "use client"
 import React from "react";
-import { FormData } from "next";
 import { createGame } from "./game/index";
 
 export default function Home() {
