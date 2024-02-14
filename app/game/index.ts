@@ -7,7 +7,7 @@ export async function createGame() {
   const gameId = randomUUID();
 
   const file = new Blob([JSON.stringify({ gameId })], { type: "application/json" });
-  await put(gameId, file, {
+  await put(`${gameId}.json`, file, {
     access: 'public',
     addRandomSuffix: false,
     contentType: 'application/json',
@@ -25,8 +25,10 @@ export async function startGame(data: { gameId: string, players: string[] }) {
     players: data.players,
   }
 
+  const protocol = process.env.VERCEL_URL?.includes('localhost') ? 'http' : 'https'
+
   const response = await fetch(
-    `http://${process.env.VERCEL_URL}/api/game`,
+    `${protocol}://${process.env.VERCEL_URL}/api/game`,
     {
       method: "POST",
       headers: {
@@ -39,17 +41,16 @@ export async function startGame(data: { gameId: string, players: string[] }) {
   const gameData = await response.json()
 
   const file = new Blob([JSON.stringify(gameData)], { type: "application/json" });
-  await put(data.gameId, file, {
+  await put(`${data.gameId}.json`, file, {
     access: 'public',
     addRandomSuffix: false,
-    contentType: 'application/json',
     token: process.env.DB_READ_WRITE_TOKEN
   })
 }
 
 export async function getGame(gameId: string) {
   const response = await fetch(
-    "https://kslx3eprjeoij69w.public.blob.vercel-storage.com/" + gameId,
+    "https://kslx3eprjeoij69w.public.blob.vercel-storage.com/" + gameId + ".json",
     {
       headers: {
         "content-type": "application/json",
