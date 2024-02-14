@@ -1,6 +1,6 @@
 "use client"
 import React from 'react'
-import { startGame } from '../index'
+import { createGameCode, startGame } from '../index'
 
 export const GameManager = (props: { gameId: string }) => {
   const [players, setPlayers] = React.useState<string[]>([]);
@@ -19,7 +19,8 @@ export const GameManager = (props: { gameId: string }) => {
 
   const startNewGame = async (_: FormData) => {
     await startGame({ gameId: props.gameId, players });
-    window.location.assign(`/game/${props.gameId}/view`);
+    const gameCode = await createGameCode(props.gameId);
+    window.location.assign(`/game/${props.gameId}/view?gameCode=${gameCode}`);
   }
 
   return (

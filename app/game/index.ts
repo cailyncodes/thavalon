@@ -1,5 +1,6 @@
 "use server"
 import { put } from "@vercel/blob"
+import { kv } from "@vercel/kv";
 import { randomUUID } from "crypto";
 
 export async function createGame() {
@@ -57,4 +58,19 @@ export async function getGame(gameId: string) {
   )
   const gameData = await response.json()
   return gameData
+}
+
+export async function createGameCode(gameId: string) {
+  const code = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789"
+  const gameCode = code.split('').sort(() => Math.random() - 0.5).slice(0, 4).join('')
+
+  kv.set(gameCode, gameId)
+
+  return gameCode
+}
+
+export async function getGameId(gameCode: string) {
+  const gameId = await kv.get(gameCode)
+
+  return gameId
 }
