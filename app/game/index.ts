@@ -39,6 +39,7 @@ export async function startGame(data: { gameId: string, players: string[] }) {
   )
 
   const gameData = await response.json()
+  console.log(gameData)
 
   const file = new Blob([JSON.stringify(gameData)], { type: "application/json" });
   await put(`${data.gameId}.json`, file, {
