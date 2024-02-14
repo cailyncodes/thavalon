@@ -25,7 +25,7 @@ export async function startGame(data: { gameId: string, players: string[] }) {
     players: data.players,
   }
 
-  const protocol = process.env.VERCEL_URL?.includes('localhost') ? 'http' : 'https'
+  const protocol = process.env.VERCEL_URL?.includes('localhost') ? 'http://localhost:3000' : 'https://thavalon.vercel.app'
 
   const response = await fetch(
     `${protocol}://${process.env.VERCEL_URL}/api/game`,
