@@ -13,7 +13,11 @@ export default async function GameHome({
 
   const remakeGame = async (_: FormData) => {
     const newGameId = await createGame();
-    window.location.assign(`/game/${newGameId}?initialPlayers=${game.players.join(',')}`);
+    // add initial_players as an array of strings to the query params
+    let params = game.players.map((player) => 
+        `initial_players[]=${encodeURIComponent(player)}`
+    ).join('&');
+    window.location.assign(`/game/${newGameId}?${params}`);
   }
 
   return (
