@@ -1,4 +1,4 @@
-import { getGame } from '../../index'
+import { createGame, getGame } from '../../index'
 import React from 'react'
 
 export default async function GameHome({
@@ -10,6 +10,11 @@ export default async function GameHome({
 }) {
   const game = await getGame(params.gameId)
   const gameCode = searchParams['gameCode']
+
+  const remakeGame = async (_: FormData) => {
+    const newGameId = await createGame();
+    window.location.assign(`/game/${newGameId}?initialPlayers=${game.players.join(',')}`);
+  }
 
   return (
     <main className="min-h-screen h-full flex flex-col items-center justify-center p-24">
@@ -33,6 +38,11 @@ export default async function GameHome({
             ))}
           </div>
         </div>
+        <form className="w-full max-w-lg flex justify-center items-center" action={remakeGame}>
+          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
+            Remake Game
+          </button>
+        </form>
       </div>
     </main>
   )

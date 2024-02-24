@@ -2,8 +2,8 @@
 import React from 'react'
 import { createGameCode, startGame } from '../index'
 
-export const GameManager = (props: { gameId: string }) => {
-  const [players, setPlayers] = React.useState<string[]>([]);
+export const GameManager = (props: { gameId: string, initialPlayers: string[] }) => {
+  const [players, setPlayers] = React.useState(props.initialPlayers);
 
   const addPlayer = (e: React.FormEvent) => {
     e.preventDefault();
