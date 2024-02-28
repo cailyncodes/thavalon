@@ -72,7 +72,7 @@ export async function createGameCode(gameId: string) {
 }
 
 export async function getGameId(gameCode: string) {
-  const gameId = await kv.get(gameCode)
+  const gameId = await kv.get(gameCode.toUpperCase())
 
   return gameId
 }
