@@ -57,7 +57,7 @@ export default function GameHome({
         <div className="w-full flex flex-col items-center justify-between">
           <form className="w-full max-w-lg flex justify-center items-center" action={remakeGame}>
             <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
-              Remake Game
+              Remake Game (beta)
             </button>
           </form>
         </div>
