@@ -3,6 +3,20 @@ import { put } from "@vercel/blob"
 import { kv } from "@vercel/kv";
 import { randomUUID } from "crypto";
 
+// Game data before running script to determine start player
+interface ProtoGame {
+  gameId: string;
+  players: string[];
+}
+
+// Game data with a specified start player
+export interface Game extends ProtoGame{
+  // starting player for proposing missions
+  start: string;
+  // games also have a mapping from player names to their roles
+  [player: string]: any;
+}
+
 export async function createGame() {
   const gameId = randomUUID();
 
@@ -20,7 +34,7 @@ export async function createGame() {
 }
 
 export async function startGame(data: { gameId: string, players: string[] }) {
-  const game = {
+  const game: ProtoGame = {
     gameId: data.gameId,
     players: data.players,
   }
@@ -49,7 +63,7 @@ export async function startGame(data: { gameId: string, players: string[] }) {
   })
 }
 
-export async function getGame(gameId: string) {
+export async function getGame(gameId: string): Promise<Game> {
   const response = await fetch(
     "https://spwamd4ap0dqqd0y.public.blob.vercel-storage.com/" + gameId + ".json",
     {
