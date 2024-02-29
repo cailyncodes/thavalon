@@ -13,6 +13,8 @@ interface ProtoGame {
 export interface Game extends ProtoGame{
   // starting player for proposing missions
   start: string;
+  // games also have a mapping from player names to their roles
+  [player: string]: string | string[];
 }
 
 export async function createGame() {
