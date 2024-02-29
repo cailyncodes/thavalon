@@ -47,7 +47,6 @@ export default function GameHome({
             <p className='text-md font-bold'>{game.start}</p>
           </div>
           <div className="flex flex-col justify-center items-center w-full mb-6 lg:mb-12">
-            {/* @ts-expect-error */}
             {game.players.map((player, index) => (
               <div key={index} className="flex flex-row justify-center items-center w-full mb-4">
                 <a href={`/game/${params.gameId}/view/${player}`} className="underline underline-offset-2">{player}</a>
