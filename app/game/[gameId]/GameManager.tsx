@@ -18,6 +18,7 @@ export const GameManager = (props: { gameId: string, initialPlayers: string[] })
   }
 
   const startNewGame = async (_: FormData) => {
+    console.log("calling startNewGame with players: ", players)
     await startGame({ gameId: props.gameId, players });
     const gameCode = await createGameCode(props.gameId);
     window.location.assign(`/game/${props.gameId}/view?gameCode=${gameCode}`);

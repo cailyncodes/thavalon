@@ -1,17 +1,29 @@
-import { createGame, getGame } from '../../index'
+"use client"
+import { Game, createGame, getGame } from '../../index'
 import React from 'react'
 
-export default async function GameHome({
+export default function GameHome({
   params,
   searchParams
 }: {
   params: { gameId: string },
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
-  const game = await getGame(params.gameId)
+
+  const [game, setGame] = React.useState<Game>()
   const gameCode = searchParams['gameCode']
 
+  // make useEffect to get the game data
+  React.useEffect(() => {
+    const fetchGame = async () => {
+      const gameData = await getGame(params.gameId)
+      setGame(gameData)
+    }
+    fetchGame()
+  }, [])
+
   const remakeGame = async (_: FormData) => {
+    if (!game) return;
     const newGameId = await createGame();
     // add initial_players as an array of strings to the query params
     let params = game.players.map((player) => 
@@ -22,6 +34,7 @@ export default async function GameHome({
 
   return (
     <main className="min-h-screen h-full flex flex-col items-center justify-center p-24">
+      {game && 
       <div className="max-w-5xl w-full font-mono text-sm flex flex-col">
         <div className="mb-12">
           <h1 className="text-lg">Players</h1>
@@ -42,12 +55,15 @@ export default async function GameHome({
             ))}
           </div>
         </div>
-        <form className="w-full max-w-lg flex justify-center items-center" action={remakeGame}>
-          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
-            Remake Game
-          </button>
-        </form>
+        <div className="w-full flex flex-col items-center justify-between">
+          <form className="w-full max-w-lg flex justify-center items-center" action={remakeGame}>
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
+              Remake Game
+            </button>
+          </form>
+        </div>
       </div>
+    }
     </main>
   )
 }
