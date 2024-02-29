@@ -9,7 +9,7 @@ export default async function GameHome({
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
   const game = await getGame(params.gameId)
-  const gameCode = searchParams['gameCode']
+  const gameCode = (searchParams['gameCode'] as string).toUpperCase()
 
   return (
     <main className="min-h-screen h-full flex flex-col items-center justify-center p-24">
