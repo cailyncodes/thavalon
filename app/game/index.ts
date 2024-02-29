@@ -51,7 +51,7 @@ export async function startGame(data: { gameId: string, players: string[] }) {
 
 export async function getGame(gameId: string) {
   const response = await fetch(
-    "https://kslx3eprjeoij69w.public.blob.vercel-storage.com/" + gameId + ".json",
+    "https://spwamd4ap0dqqd0y.public.blob.vercel-storage.com/" + gameId + ".json",
     {
       headers: {
         "content-type": "application/json",
