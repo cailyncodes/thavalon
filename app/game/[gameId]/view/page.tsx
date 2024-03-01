@@ -9,9 +9,8 @@ export default function GameHome({
   params: { gameId: string },
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
-
   const [game, setGame] = React.useState<Game>()
-  const gameCode = searchParams['gameCode']
+  const gameCode = (searchParams['gameCode'] as string).toUpperCase()
 
   React.useEffect(() => {
     const fetchGame = async () => {
