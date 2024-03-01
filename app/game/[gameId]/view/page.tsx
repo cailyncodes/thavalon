@@ -13,14 +13,13 @@ export default function GameHome({
   const [game, setGame] = React.useState<Game>()
   const gameCode = searchParams['gameCode']
 
-  // make useEffect to get the game data
   React.useEffect(() => {
     const fetchGame = async () => {
       const gameData = await getGame(params.gameId)
       setGame(gameData)
     }
     fetchGame()
-  }, [])
+  }, []);
 
   const remakeGame = async (_: FormData) => {
     if (!game) return;
