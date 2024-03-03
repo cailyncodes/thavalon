@@ -2,8 +2,13 @@
 import React from 'react'
 import { createGameCode, startGame } from '../index'
 
-export const GameManager = (props: { gameId: string, initialPlayers: string[] }) => {
-  const [players, setPlayers] = React.useState(props.initialPlayers);
+interface GameManagerProps {
+  gameId: string;
+  initialPlayers: string[];
+ }
+
+export const GameManager = ({ gameId, initialPlayers }: GameManagerProps) => {
+  const [players, setPlayers] = React.useState(initialPlayers);
 
   const addPlayer = (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,10 +23,9 @@ export const GameManager = (props: { gameId: string, initialPlayers: string[] })
   }
 
   const startNewGame = async (_: FormData) => {
-    console.log("calling startNewGame with players: ", players)
-    await startGame({ gameId: props.gameId, players });
-    const gameCode = await createGameCode(props.gameId);
-    window.location.assign(`/game/${props.gameId}/view?gameCode=${gameCode}`);
+    await startGame({ gameId, players });
+    const gameCode = await createGameCode(gameId);
+    window.location.assign(`/game/${gameId}/view?gameCode=${gameCode}`);
   }
 
   return (

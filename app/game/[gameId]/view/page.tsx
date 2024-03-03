@@ -1,36 +1,16 @@
-"use client"
-import { Game, createGame, getGame } from '../../index'
+import { getGame } from '../../index'
 import React from 'react'
+import { RemakeGame } from './RemakeGame'
 
-export default function GameHome({
+export default async function GameHome({
   params,
   searchParams
 }: {
   params: { gameId: string },
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
-
-  const [game, setGame] = React.useState<Game>()
-  const gameCode = searchParams['gameCode']
-
-  // make useEffect to get the game data
-  React.useEffect(() => {
-    const fetchGame = async () => {
-      const gameData = await getGame(params.gameId)
-      setGame(gameData)
-    }
-    fetchGame()
-  }, [])
-
-  const remakeGame = async (_: FormData) => {
-    if (!game) return;
-    const newGameId = await createGame();
-    // add initial_players as an array of strings to the query params
-    let params = game.players.map((player) => 
-        `initial_players[]=${encodeURIComponent(player)}`
-    ).join('&');
-    window.location.assign(`/game/${newGameId}?${params}`);
-  }
+  const game = await getGame(params.gameId)
+  const gameCode = (searchParams['gameCode'] as string).toUpperCase()
 
   return (
     <main className="min-h-screen h-full flex flex-col items-center justify-center p-24">
@@ -54,13 +34,7 @@ export default function GameHome({
             ))}
           </div>
         </div>
-        <div className="w-full flex flex-col items-center justify-between">
-          <form className="w-full max-w-lg flex justify-center items-center" action={remakeGame}>
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
-              Remake Game (beta)
-            </button>
-          </form>
-        </div>
+        <RemakeGame players={game.players} />
       </div>
     }
     </main>
