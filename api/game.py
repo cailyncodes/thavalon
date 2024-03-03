@@ -67,6 +67,17 @@ def get_role_description(role):
 # - Guinevere: too complicated to generate here
 # - Colgrevance: name,role (evil has an update later to inform them about the presence of a Colgrevance)
 def get_role_information(my_player, players):
+    other_evils = [
+            "{} is Evil.".format(player.name)
+            for player in players
+            if (
+                player.team is "Evil"
+                and player is not my_player
+                and player.role is not "Colgrevance"
+            )
+            or player.role is "Titania"
+        ]
+
     return {
         "Tristan": [
             "{} is Iseult.".format(player.name)
@@ -101,40 +112,10 @@ def get_role_information(my_player, players):
         "Nimue": [
             "{}".format(player.role) for player in players if player.role is not "Nimue"
         ],
-        "Mordred": [
-            "{} is Evil.".format(player.name)
-            for player in players
-            if (
-                player.team is "Evil"
-                and player is not my_player
-                and player.role is not "Colgrevance"
-            )
-            or player.role is "Titania"
-        ],
-        "Morgana": [
-            "{} is Evil.".format(player.name)
-            for player in players
-            if player.team is "Evil"
-            and player is not my_player
-            and player.role is not "Colgrevance"
-            or player.role is "Titania"
-        ],
-        "Maelagant": [
-            "{} is Evil.".format(player.name)
-            for player in players
-            if player.team is "Evil"
-            and player is not my_player
-            and player.role is not "Colgrevance"
-            or player.role is "Titania"
-        ],
-        "Agravaine": [
-            "{} is Evil.".format(player.name)
-            for player in players
-            if player.team is "Evil"
-            and player is not my_player
-            and player.role is not "Colgrevance"
-            or player.role is "Titania"
-        ],
+        "Mordred": other_evils,
+        "Morgana": other_evils,
+        "Maelagant": other_evils,
+        "Agravaine": other_evils,
         "Colgrevance": [
             "{} is {}".format(player.name, player.role)
             for player in players
