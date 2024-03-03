@@ -21,11 +21,10 @@ export default function Home() {
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex mb-12">
         <div className="w-full flex flex-col items-center justify-between">
           <h1 className="text-4xl font-bold">THAvalon</h1>
-          <p className="text-xl">Online implementation of THAvalon to speed up games</p>
         </div>
       </div>
       <div className="w-full flex flex-col items-center justify-between">
-      <p className="text-xl">Enter a game code to join or start a new game.</p>
+      <p className="text-xl">Enter a game code to join a game.</p>
         <form
           className="max-w-lg w-full h-full flex flex-col self-center items-center justify-center mb-6 text-lg"
           onSubmit={joinGame}
