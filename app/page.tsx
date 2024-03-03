@@ -25,6 +25,7 @@ export default function Home() {
         </div>
       </div>
       <div className="w-full flex flex-col items-center justify-between">
+      <p className="text-xl">Enter a game code to join or start a new game.</p>
         <form
           className="max-w-lg w-full h-full flex flex-col self-center items-center justify-center mb-6 text-lg"
           onSubmit={joinGame}
@@ -39,7 +40,7 @@ export default function Home() {
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             type="submit"
           >
-            Join a Game
+            Join
           </button>
         </form>
         <form className="w-full max-w-lg flex justify-center items-center" action={createNewGame}>
