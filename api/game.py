@@ -163,6 +163,7 @@ def get_player_info(player_names):
         players.append(player)
 
     # number of good and evil roles
+    print("Here is the number of players: ", num_players)
     if num_players < 7:
         num_evil = 2
     elif num_players < 10:
