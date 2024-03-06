@@ -265,7 +265,7 @@ def get_player_info(player_names):
 
     # Informing Evil about a Colgrevance
     for ep in evil_players:
-        if ep.role is not "Colgrevance" and player_of_role.get("Colgrevance"):
+        if ep.role != "Colgrevance" and player_of_role.get("Colgrevance"):
             ep.add_info(
                 [
                     "Colgrevance lurks in the shadows. (There is another Evil that you do not see.)"
