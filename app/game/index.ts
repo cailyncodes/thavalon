@@ -39,6 +39,7 @@ export async function startGame(data: { gameId: string, players: string[] }) {
     players: data.players,
   }
 
+  console.log("Here url", `https://${process.env.VERCEL_URL}`)
   const url = process.env.VERCEL_URL?.includes('localhost') ? 'http://localhost:3000' : `https://${process.env.VERCEL_URL}`
 
   const response = await fetch(
