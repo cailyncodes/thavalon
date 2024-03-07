@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "next lint",
-    "start": "vercel dev",
-    "deploy": "vercel deploy --prod"
+    "start": "vercel dev"
   },
   "dependencies": {
     "@vercel/blob": "^0.22.0",
