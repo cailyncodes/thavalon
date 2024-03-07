@@ -216,12 +216,14 @@ def get_player_info(player_names):
             good_roles_in_game.remove("Tristan")
         if "Iseult" in good_roles_in_game:
             good_roles_in_game.remove("Iseult")
-
-        if random.choice([True, False]):
-            # replacing the lone lover
-            available_roles = (
+        
+        # if there are no good roles left, we need to add in a lover
+        available_roles = (
                 set(good_roles) - set(good_roles_in_game) - set(["Tristan", "Iseult"])
             )
+
+        if random.choice([True, False]) and available_roles:
+            # replacing the lone lover
             good_roles_in_game.append(random.sample(set(available_roles), 1)[0])
         else:
             # upgrading to pair of lovers
