@@ -67,6 +67,17 @@ def get_role_description(role):
 # - Guinevere: too complicated to generate here
 # - Colgrevance: name,role (evil has an update later to inform them about the presence of a Colgrevance)
 def get_role_information(my_player, players):
+    other_evils = [
+            "{} is Evil.".format(player.name)
+            for player in players
+            if (
+                player.team is "Evil"
+                and player is not my_player
+                and player.role is not "Colgrevance"
+            )
+            or player.role is "Titania"
+        ]
+
     return {
         "Tristan": [
             "{} is Iseult.".format(player.name)
@@ -101,40 +112,10 @@ def get_role_information(my_player, players):
         "Nimue": [
             "{}".format(player.role) for player in players if player.role is not "Nimue"
         ],
-        "Mordred": [
-            "{} is Evil.".format(player.name)
-            for player in players
-            if (
-                player.team is "Evil"
-                and player is not my_player
-                and player.role is not "Colgrevance"
-            )
-            or player.role is "Titania"
-        ],
-        "Morgana": [
-            "{} is Evil.".format(player.name)
-            for player in players
-            if player.team is "Evil"
-            and player is not my_player
-            and player.role is not "Colgrevance"
-            or player.role is "Titania"
-        ],
-        "Maelagant": [
-            "{} is Evil.".format(player.name)
-            for player in players
-            if player.team is "Evil"
-            and player is not my_player
-            and player.role is not "Colgrevance"
-            or player.role is "Titania"
-        ],
-        "Agravaine": [
-            "{} is Evil.".format(player.name)
-            for player in players
-            if player.team is "Evil"
-            and player is not my_player
-            and player.role is not "Colgrevance"
-            or player.role is "Titania"
-        ],
+        "Mordred": other_evils,
+        "Morgana": other_evils,
+        "Maelagant": other_evils,
+        "Agravaine": other_evils,
         "Colgrevance": [
             "{} is {}".format(player.name, player.role)
             for player in players
@@ -182,6 +163,7 @@ def get_player_info(player_names):
         players.append(player)
 
     # number of good and evil roles
+    print("Here is the number of players: ", num_players)
     if num_players < 7:
         num_evil = 2
     elif num_players < 10:
@@ -234,12 +216,14 @@ def get_player_info(player_names):
             good_roles_in_game.remove("Tristan")
         if "Iseult" in good_roles_in_game:
             good_roles_in_game.remove("Iseult")
-
-        if random.choice([True, False]):
-            # replacing the lone lover
-            available_roles = (
+        
+        # if there are no good roles left, we need to add in a lover
+        available_roles = (
                 set(good_roles) - set(good_roles_in_game) - set(["Tristan", "Iseult"])
             )
+
+        if random.choice([True, False]) and available_roles:
+            # replacing the lone lover
             good_roles_in_game.append(random.sample(set(available_roles), 1)[0])
         else:
             # upgrading to pair of lovers
@@ -283,7 +267,7 @@ def get_player_info(player_names):
 
     # Informing Evil about a Colgrevance
     for ep in evil_players:
-        if ep.role is not "Colgrevance" and player_of_role.get("Colgrevance"):
+        if ep.role != "Colgrevance" and player_of_role.get("Colgrevance"):
             ep.add_info(
                 [
                     "Colgrevance lurks in the shadows. (There is another Evil that you do not see.)"
