@@ -37,7 +37,20 @@ export async function startGame(data: { gameId: string, players: string[] }) {
     players: data.players,
   }
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : process.env.VERCEL_URL
+  const env = process.env.VERCEL_ENV || 'development'
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : (() => {
+    switch (env) {
+      case 'development':
+        return 'localhost:3000'
+      case 'preview':
+        return process.env.VERCEL_BRANCH_URL
+      case 'production':
+        return "thavalon.vercel.app"
+      default:
+        throw new Error('Unknown environment')
+    }
+  })()
 
   const url = origin?.includes('localhost') ? `http://${origin}` : `https://${origin}`
 
