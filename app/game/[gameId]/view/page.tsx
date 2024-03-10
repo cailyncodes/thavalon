@@ -34,7 +34,7 @@ export default async function GameHome({
               ))}
             </div>
           </div>
-          <RemakeGame players={game.players} />
+          <RemakeGame />
         </div>
       }
     </main>
