@@ -10,25 +10,23 @@ interface ProtoGame {
 }
 
 // Game data with a specified start player
-export interface Game extends ProtoGame{
+export interface Game extends ProtoGame {
   // starting player for proposing missions
   start: string;
   // games also have a mapping from player names to their roles
   [player: string]: any;
 }
 
-export async function createGame() {
+export async function createGame(host: string) {
   const gameId = randomUUID();
 
-  const file = new Blob([JSON.stringify({ gameId })], { type: "application/json" });
+  const file = new Blob([JSON.stringify({ gameId, host, players: [host] })], { type: "application/json" });
   await put(`${gameId}.json`, file, {
     access: 'public',
     addRandomSuffix: false,
     contentType: 'application/json',
     token: process.env.DB_READ_WRITE_TOKEN
   })
-
-  console.log("Game started with id: ", gameId);
 
   return gameId
 }
@@ -39,7 +37,22 @@ export async function startGame(data: { gameId: string, players: string[] }) {
     players: data.players,
   }
 
-  const url = process.env.VERCEL_URL?.includes('localhost') ? 'http://localhost:3000' : 'https://thavalon-five.vercel.app'
+  const env = process.env.VERCEL_ENV || 'development'
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : (() => {
+    switch (env) {
+      case 'development':
+        return 'localhost:3000'
+      case 'preview':
+        return process.env.VERCEL_BRANCH_URL
+      case 'production':
+        return "thavalon.vercel.app"
+      default:
+        throw new Error('Unknown environment')
+    }
+  })()
+
+  const url = origin?.includes('localhost') ? `http://${origin}` : `https://${origin}`
 
   const response = await fetch(
     `${url}/api/game`,
@@ -53,7 +66,6 @@ export async function startGame(data: { gameId: string, players: string[] }) {
   )
 
   const gameData = await response.json()
-  console.log(gameData)
 
   const file = new Blob([JSON.stringify(gameData)], { type: "application/json" });
   await put(`${data.gameId}.json`, file, {
@@ -65,7 +77,7 @@ export async function startGame(data: { gameId: string, players: string[] }) {
 
 export async function getGame(gameId: string): Promise<Game> {
   const response = await fetch(
-    "https://spwamd4ap0dqqd0y.public.blob.vercel-storage.com/" + gameId + ".json",
+    `https://kslx3eprjeoij69w.public.blob.vercel-storage.com/${gameId}.json?timestamp=${Date.now()}`,
     {
       headers: {
         "content-type": "application/json",
@@ -89,4 +101,23 @@ export async function getGameId(gameCode: string) {
   const gameId = await kv.get(gameCode.toUpperCase())
 
   return gameId
+}
+
+export async function addPlayer(gameId: string, player: string) {
+  const game = await getGame(gameId)
+  const players = game.players || []
+
+  if (players.includes(player)) {
+    return
+  }
+
+  players.push(player)
+  game.players = players
+
+  const file = new Blob([JSON.stringify(game)], { type: "application/json" });
+  await put(`${gameId}.json`, file, {
+    access: 'public',
+    addRandomSuffix: false,
+    token: process.env.DB_READ_WRITE_TOKEN,
+  })
 }
