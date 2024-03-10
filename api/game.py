@@ -68,15 +68,15 @@ def get_role_description(role):
 # - Colgrevance: name,role (evil has an update later to inform them about the presence of a Colgrevance)
 def get_role_information(my_player, players):
     other_evils = [
-            "{} is Evil.".format(player.name)
-            for player in players
-            if (
-                player.team is "Evil"
-                and player is not my_player
-                and player.role is not "Colgrevance"
-            )
-            or player.role is "Titania"
-        ]
+        "{} is Evil.".format(player.name)
+        for player in players
+        if (
+            player.team is "Evil"
+            and player is not my_player
+            and player.role is not "Colgrevance"
+        )
+        or player.role is "Titania"
+    ]
 
     return {
         "Tristan": [
@@ -216,11 +216,11 @@ def get_player_info(player_names):
             good_roles_in_game.remove("Tristan")
         if "Iseult" in good_roles_in_game:
             good_roles_in_game.remove("Iseult")
-        
+
         # if there are no good roles left, we need to add in a lover
         available_roles = (
-                set(good_roles) - set(good_roles_in_game) - set(["Tristan", "Iseult"])
-            )
+            set(good_roles) - set(good_roles_in_game) - set(["Tristan", "Iseult"])
+        )
 
         if random.choice([True, False]) and available_roles:
             # replacing the lone lover
