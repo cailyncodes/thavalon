@@ -43,10 +43,10 @@ class handler(BaseHTTPRequestHandler):
 
 
 # get_role_descriptions - this is called when information files are generated.
-def get_role_description(role):
+def get_role_description(role, variant = "thavalon"):
     return {
-        "Tristan": "The person you see is also Good and is aware that you are Good.\nYou and Iseult are collectively a valid Assassination target.\nYou and Iseult will receive immunity from assassination if you correctly identify the Jealous Ex at the end of the game.",
-        "Iseult": "The person you see is also Good and is aware that you are Good.\nYou and Tristan are collectively a valid Assassination target.\nYou and Tristan will receive immunity from assassination if they correctly identify the Jealous Ex at the end of the game.\nYou appear to the Jealous Ex.",
+        "Tristan": "The person you see is also Good and is aware that you are Good.\nYou and Iseult are collectively a valid Assassination target." + ("\nYou and Iseult will receive immunity from assassination if you correctly identify the Jealous Ex at the end of the game.\nYou appear to the Jealous Ex." if variant == "jealousy" else ""),
+        "Iseult": "The person you see is also Good and is aware that you are Good.\nYou and Tristan are collectively a valid Assassination target." + ("\nYou and Tristan will receive immunity from assassination if they correctly identify the Jealous Ex at the end of the game.\nYou appear to the Jealous Ex." if variant == "jealousy" else ""),
         "Merlin": "You know which people have Evil roles, but not who has any specific role.\nYou are a valid Assassination target.",
         "Percival": "You know which people have the Merlin or Morgana roles, but not specifically who has each.",
         "Lancelot": "You may play Reversal cards while on missions.\nYou appear Evil to Merlin.",
@@ -385,7 +385,7 @@ def get_player_info(player_names, variant = "thavalon"):
             + player.team
             + "]\n"
             + bar
-            + get_role_description(player.role)
+            + get_role_description(player.role, variant)
             + "\n"
             + bar
             + "\n".join(player.info)
@@ -431,4 +431,4 @@ def main():
 
 # uncomment to run the main function for testing
 # please leave commented out when deploying
-main()
+# main()
