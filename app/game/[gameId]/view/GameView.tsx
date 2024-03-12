@@ -20,6 +20,10 @@ export const GameView = ({ game, gameCode }: Props) => {
     }
   }, []);
 
+  if (!username) {
+    return null
+  }
+
   return (
     <>
       {game &&
@@ -32,20 +36,13 @@ export const GameView = ({ game, gameCode }: Props) => {
               <p className='text-md font-bold'>{game.start}</p>
             </div>
             <div className="flex flex-col justify-center items-center w-full mb-6">
-              {game.players.map((player, index) => {
-                if (player !== username) {
-                  return null
-                }
-                return (
-                  <div key={index} className="flex flex-row justify-center items-center w-full mb-4">
-                    <div className="max-w-3xl w-full font-mono text-sm flex flex-col">
-                      <pre className="whitespace-pre-line">
-                        {game[username]}
-                      </pre>
-                    </div>
-                  </div>
-                )
-              })}
+              <div className="flex flex-row justify-center items-center w-full mb-4">
+                <div className="max-w-3xl w-full font-mono text-sm flex flex-col">
+                  <pre className="whitespace-pre-line">
+                    {game[username]}
+                  </pre>
+                </div>
+              </div>
             </div>
           </div>
           {shouldShowDoNotOpen ? (
