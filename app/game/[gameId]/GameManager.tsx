@@ -1,6 +1,6 @@
 "use client"
 import React from 'react'
-import { addPlayer, createGameCode, getGame, startGame } from '../index'
+import { addPlayer, createGameCode, getGame, startGame, Variant } from '../index'
 
 interface GameManagerProps {
   gameId: string;
@@ -10,6 +10,7 @@ interface GameManagerProps {
 export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
   const [player, setPlayer] = React.useState<string>("")
   const [players, setPlayers] = React.useState<string[]>([]);
+  const [variant, setVariant] = React.useState<Variant>("thavalon");
   const [isHost, setIsHost] = React.useState(false);
 
 
@@ -22,7 +23,7 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
   }
 
   const startNewGame = async (_: FormData) => {
-    await startGame({ gameId, players });
+    await startGame({ gameId, players, variant });
     window.location.assign(`/game/${gameId}/view?gameCode=${gameCode}`);
   }
 
@@ -86,6 +87,10 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
           </div>
           {isHost ?
             <div className='w-full flex flex-col justify-center items-center lg:flex-row'>
+              <select className="border-2 border-gray-300 p-2 rounded m-2 text-gray-700 bg-white w-2/5" name="variant" value={variant} onChange={e => setVariant(e.target.value as Variant)}>
+                <option value="thavalon">Thavalon</option>
+                <option value="jealousy">Jealousy</option>
+              </select>
               <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" type="submit">
                 Start
               </button>

@@ -3,10 +3,13 @@ import { put } from "@vercel/blob"
 import { kv } from "@vercel/kv";
 import { randomUUID } from "crypto";
 
+export type Variant = "thavalon" | "avalon" | "jealousy";
+
 // Game data before running script to determine start player
 interface ProtoGame {
   gameId: string;
   players: string[];
+  variant: Variant;
 }
 
 // Game data with a specified start player
@@ -31,10 +34,11 @@ export async function createGame(host: string) {
   return gameId
 }
 
-export async function startGame(data: { gameId: string, players: string[] }) {
+export async function startGame(data: { gameId: string, players: string[], variant: Variant }) {
   const game: ProtoGame = {
     gameId: data.gameId,
     players: data.players,
+    variant: data.variant
   }
 
   const env = process.env.VERCEL_ENV || 'development'
