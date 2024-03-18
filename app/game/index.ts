@@ -5,15 +5,42 @@ import { randomUUID } from "crypto";
 
 export type Variant = "thavalon" | "avalon" | "jealousy";
 
-// Game data before running script to determine start player
-interface ProtoGame {
+
+
+// Game data with a specified host
+interface HostedGame {
+  host: string;
   gameId: string;
   players: string[];
-  variant: Variant;
 }
+
+// Game data before running script to determine start player
+interface ProtoGame extends HostedGame {
+  variant: Variant;
+  // current mission number tracks the current quest, 1-5
+  missionIndex: number;
+  // map mission index to people on the mission
+  missionToPeople: Record<number, string[]>;
+  // map mission index to votes
+  missionToVotes: MissionToVotes;
+  // game state
+  gameState: GameState;
+}
+
+// TODO - where should I define these const? Vercel doesn't let useServer export consts
+export type MissionVote = "SUCCESS" | "FAIL" | "REVERSE";
+
+interface MissionToVotes {
+  [index: number]: Record<string, MissionVote>;
+}
+
+// define a type of game state
+export type GameState = "PROPOSING" | "MISSION_VOTING";
 
 // Game data with a specified start player
 export interface Game extends ProtoGame {
+  // overall game state as a string
+  doNotOpen: string;
   // starting player for proposing missions
   start: string;
   // games also have a mapping from player names to their roles
@@ -23,22 +50,23 @@ export interface Game extends ProtoGame {
 export async function createGame(host: string) {
   const gameId = randomUUID();
 
-  const file = new Blob([JSON.stringify({ gameId, host, players: [host] })], { type: "application/json" });
-  await put(`${gameId}.json`, file, {
-    access: 'public',
-    addRandomSuffix: false,
-    contentType: 'application/json',
-    token: process.env.DB_READ_WRITE_TOKEN
-  })
+  const game: HostedGame = { gameId, host, players: [host] }
+  putGame(game)
 
   return gameId
 }
 
-export async function startGame(data: { gameId: string, players: string[], variant: Variant }) {
+export async function startGame(data: { gameId: string, host: string, players: string[], variant: Variant }) {
+  console.log("Here start game with data", data)
   const game: ProtoGame = {
     gameId: data.gameId,
+    gameState: "PROPOSING",
+    host: data.host,
+    missionIndex: 1,
+    missionToPeople: {},
+    missionToVotes: {},
     players: data.players,
-    variant: data.variant
+    variant: data.variant,
   }
 
   const env = process.env.VERCEL_ENV || 'development'
@@ -57,6 +85,7 @@ export async function startGame(data: { gameId: string, players: string[], varia
   })()
 
   const url = origin?.includes('localhost') ? `http://${origin}` : `https://${origin}`
+  console.log("Here sending game", game)
 
   const response = await fetch(
     `${url}/api/game`,
@@ -70,18 +99,12 @@ export async function startGame(data: { gameId: string, players: string[], varia
   )
 
   const gameData = await response.json()
-
-  const file = new Blob([JSON.stringify(gameData)], { type: "application/json" });
-  await put(`${data.gameId}.json`, file, {
-    access: 'public',
-    addRandomSuffix: false,
-    token: process.env.DB_READ_WRITE_TOKEN
-  })
+  putGame(gameData)
 }
 
 export async function getGame(gameId: string): Promise<Game> {
   const response = await fetch(
-    `https://kslx3eprjeoij69w.public.blob.vercel-storage.com/${gameId}.json?timestamp=${Date.now()}`,
+    `https://spwamd4ap0dqqd0y.public.blob.vercel-storage.com/${gameId}.json?timestamp=${Date.now()}`,
     {
       headers: {
         "content-type": "application/json",
@@ -107,6 +130,15 @@ export async function getGameId(gameCode: string) {
   return gameId
 }
 
+export async function putGame(game: HostedGame | Game) {
+  const file = new Blob([JSON.stringify(game)], { type: "application/json" });
+  const response = await put(`${game.gameId}.json`, file, {
+    access: 'public',
+    addRandomSuffix: false,
+    token: process.env.DB_READ_WRITE_TOKEN,
+  })
+}
+
 export async function addPlayer(gameId: string, player: string) {
   const game = await getGame(gameId)
   const players = game.players || []
@@ -118,10 +150,43 @@ export async function addPlayer(gameId: string, player: string) {
   players.push(player)
   game.players = players
 
-  const file = new Blob([JSON.stringify(game)], { type: "application/json" });
-  await put(`${gameId}.json`, file, {
-    access: 'public',
-    addRandomSuffix: false,
-    token: process.env.DB_READ_WRITE_TOKEN,
-  })
+  putGame(game)
+}
+
+export async function updateGameState(gameId: string, gameState: GameState) {
+  const game = await getGame(gameId)
+  if (game.gameState === gameState) {
+    return
+  }
+  game.gameState = gameState
+
+  putGame(game)
+}
+
+export async function startMission(gameId: string, missionIndex: number, players: string[]) {
+  const game = await getGame(gameId)
+  const missionToPeople = game.missionToPeople || {}
+  missionToPeople[missionIndex] = players
+  game.missionToProposals = missionToPeople
+  game.gameState = "MISSION_VOTING"
+
+  putGame(game)
+}
+
+export async function stopMission(gameId: string, missionIndex: number) {
+  const game = await getGame(gameId)
+  game.gameState = "PROPOSING"
+  game.missionIndex = missionIndex + 1
+
+  putGame(game)
+}
+
+export async function voteOnMission(gameId: string, missionIndex: number, player: string, vote: MissionVote) {
+  const game = await getGame(gameId)
+  const missionToVotes = game.missionToVotes || {}
+  missionToVotes[missionIndex] = missionToVotes[missionIndex] || {}
+  missionToVotes[missionIndex][player] = vote
+  game.missionToVotes = missionToVotes
+
+  putGame(game)
 }

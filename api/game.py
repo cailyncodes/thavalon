@@ -34,11 +34,12 @@ class handler(BaseHTTPRequestHandler):
             return
 
         computedData = get_player_info(players, variant)
+        data.update(computedData)
 
         self.send_response(200)
         self.send_header("Content-type", "application/json")
         self.end_headers()
-        self.wfile.write(json.dumps(computedData).encode("utf-8"))
+        self.wfile.write(json.dumps(data).encode("utf-8"))
         return
 
 

@@ -3,6 +3,7 @@
 import React from "react"
 import { Game } from "../../index"
 import { RemakeGame } from "./RemakeGame"
+import { GameStateManager } from "./GameStateManager"
 
 interface Props {
   game: Game
@@ -70,6 +71,7 @@ export const GameView = ({ game, gameCode }: Props) => {
             </div>
           )
           }
+          <GameStateManager  gameId={game.gameId}/>
           <RemakeGame />
         </div>
       }
