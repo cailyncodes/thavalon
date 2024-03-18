@@ -163,6 +163,9 @@ export async function updateGameState(gameId: string, gameState: GameState) {
 
 export async function startMission(gameId: string, missionIndex: number, players: string[]) {
   const game = await getGame(gameId)
+  if (game.gameState !== "PROPOSING" || game.missionIndex !== missionIndex) {
+    return
+  }
   const missionToPeople = game.missionToPeople || {}
   missionToPeople[missionIndex] = players
   game.missionToProposals = missionToPeople
@@ -173,6 +176,9 @@ export async function startMission(gameId: string, missionIndex: number, players
 
 export async function stopMission(gameId: string, missionIndex: number) {
   const game = await getGame(gameId)
+  if (game.gameState !== "MISSION_VOTING" || game.missionIndex !== missionIndex) {
+    return
+  }
   game.gameState = "PROPOSING"
   game.missionIndex = missionIndex + 1
 
@@ -181,6 +187,9 @@ export async function stopMission(gameId: string, missionIndex: number) {
 
 export async function voteOnMission(gameId: string, missionIndex: number, player: string, vote: MissionVote) {
   const game = await getGame(gameId)
+  if (game.gameState !== "MISSION_VOTING" || game.missionIndex !== missionIndex) {
+    return
+  }
   const missionToVotes = game.missionToVotes || {}
   missionToVotes[missionIndex] = missionToVotes[missionIndex] || {}
   missionToVotes[missionIndex][player] = vote

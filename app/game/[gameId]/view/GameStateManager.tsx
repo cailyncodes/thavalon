@@ -78,7 +78,9 @@ export const GameStateManager = ({gameId}: Props) => {
     , [fetchGame]);
 
   if (!game || !username || isLoading) {
-    return <div>Loading</div>;
+    return <div className="w-full flex flex-col items-center justify-between">
+    <p className='text-md font-bold'>Loading...</p>
+  </div>;
   }
 
   const isOnMission = game.missionToPeople[game.missionIndex]?.includes(username) ?? false;
