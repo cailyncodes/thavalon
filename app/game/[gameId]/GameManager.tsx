@@ -25,7 +25,6 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
 
   const startNewGame = async (_: FormData) => {
     await startGame({ gameId, host, players, variant });
-    console.log("here starting new game, window location", `/game/${gameId}/view?gameCode=${gameCode}`, gameId, gameCode)
     window.location.assign(`/game/${gameId}/view?gameCode=${gameCode}`);
   }
 

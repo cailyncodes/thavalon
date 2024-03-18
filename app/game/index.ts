@@ -57,7 +57,6 @@ export async function createGame(host: string) {
 }
 
 export async function startGame(data: { gameId: string, host: string, players: string[], variant: Variant }) {
-  console.log("Here start game with data", data)
   const game: ProtoGame = {
     gameId: data.gameId,
     gameState: "PROPOSING",
@@ -78,14 +77,13 @@ export async function startGame(data: { gameId: string, host: string, players: s
       case 'preview':
         return process.env.VERCEL_BRANCH_URL
       case 'production':
-        return "thavalon.vercel.app"
+        return "thavalon-five.vercel.app"
       default:
         throw new Error('Unknown environment')
     }
   })()
 
   const url = origin?.includes('localhost') ? `http://${origin}` : `https://${origin}`
-  console.log("Here sending game", game)
 
   const response = await fetch(
     `${url}/api/game`,
