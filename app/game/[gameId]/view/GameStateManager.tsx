@@ -10,7 +10,7 @@ export const GameStateManager = ({gameId}: Props) => {
   const [username, setUsername] = React.useState<string>();
   const [game, setGame] = React.useState<Game>();
   const [isLoading, setIsLoading] = React.useState(false);
-  const [missionVote, setMissionVote] = React.useState<MissionVote>("SUCCESS");
+  const [missionVote, setMissionVote] = React.useState<MissionVote>("REVERSE");
 
   React.useEffect(() => {
     const name = window.localStorage.getItem("username");
@@ -24,7 +24,6 @@ export const GameStateManager = ({gameId}: Props) => {
     setGame(game);
     setIsLoading(false);
     // here we check if we are in the mission voting state and all players have voted
-    console.log("here game state manager", game)
     if (game.gameState === "MISSION_VOTING" && game.missionToVotes?.[game.missionIndex]) {
       const numVoted = Object.keys(game.missionToVotes[game.missionIndex]).length;
       if (numVoted === game.missionToPeople[game.missionIndex].length) {
