@@ -24,7 +24,8 @@ export const GameStateManager = ({gameId}: Props) => {
     setGame(game);
     setIsLoading(false);
     // here we check if we are in the mission voting state and all players have voted
-    if (game.gameState === "MISSION_VOTING" && game.missionToVotes[game.missionIndex]) {
+    console.log("here game state manager", game)
+    if (game.gameState === "MISSION_VOTING" && game.missionToVotes?.[game.missionIndex]) {
       const numVoted = Object.keys(game.missionToVotes[game.missionIndex]).length;
       if (numVoted === game.missionToPeople[game.missionIndex].length) {
         stopMission(gameId, game.missionIndex);
