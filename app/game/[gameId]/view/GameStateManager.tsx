@@ -102,7 +102,9 @@ export const GameStateManager = ({gameId}: Props) => {
             </div>)}
     { game.host === username ?
      (<>
-        <form className="w-full max-w-lg flex justify-center items-center m-2" onSubmit={submitStartMission}>
+        <form className="w-full max-w-lg flex flex-col justify-center items-center m-2" onSubmit={submitStartMission}>
+            Input the selected mission here:
+            <div className='flex justify-center flex-col'>
             {game.players.map((player, index) => {
                 // radio button for each player
                 return <div key={index}>
@@ -111,6 +113,7 @@ export const GameStateManager = ({gameId}: Props) => {
                 </div>
             })
             }
+            </div>
             <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
                 Start Mission
             </button>
