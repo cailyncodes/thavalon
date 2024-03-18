@@ -22,7 +22,6 @@ export const GameStateManager = ({gameId}: Props) => {
   const fetchGame = async () => {
     const game = await getGame(gameId);
     setGame(game);
-    console.log("here game", game)
     setIsLoading(false);
     // here we check if we are in the mission voting state and all players have voted
     if (game.gameState === "MISSION_VOTING" && game.missionToVotes[game.missionIndex]) {

@@ -24,8 +24,8 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
   }
 
   const startNewGame = async (_: FormData) => {
-    console.log("here startNewGame host", host)
     await startGame({ gameId, host, players, variant });
+    console.log("here starting new game, window location", `/game/${gameId}/view?gameCode=${gameCode}`, gameId, gameCode)
     window.location.assign(`/game/${gameId}/view?gameCode=${gameCode}`);
   }
 
@@ -57,8 +57,6 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
       window.location.assign(`/game/${gameId}/view?gameCode=${gameCode}`);
     }
     if (game.host) {
-
-      console.log("here setting host", game.host, game.players)
       setHost(game.host);
     }
     if (game.host === player) {
