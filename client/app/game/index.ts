@@ -43,14 +43,12 @@ export async function startGame(data: { gameId: string, players: string[], varia
 
   const env = process.env.RAILWAY_ENVIRONMENT_NAME || 'development'
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : (() => {
+  const origin = (() => {
     switch (env) {
       case 'development':
-        return 'localhost:3000'
-      case 'preview':
-        return process.env.VERCEL_BRANCH_URL
+        return 'localhost:5000'
       case 'production':
-        return "thavalon.quest"
+        return "api.thavalon.quest"
       default:
         throw new Error('Unknown environment')
     }
