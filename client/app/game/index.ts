@@ -41,7 +41,7 @@ export async function startGame(data: { gameId: string, players: string[], varia
     variant: data.variant
   }
 
-  const env = process.env.VERCEL_ENV || 'development'
+  const env = process.env.RAILWAY_ENVIRONMENT_NAME || 'development'
 
   const origin = typeof window !== 'undefined' ? window.location.origin : (() => {
     switch (env) {
