@@ -3,6 +3,7 @@
 import React from "react"
 import { Game } from "../../index"
 import { RemakeGame } from "./RemakeGame"
+import { GameStateManager } from "./GameStateManager"
 
 interface Props {
   game: Game
@@ -12,6 +13,7 @@ interface Props {
 export const GameView = ({ game, gameCode }: Props) => {
   const [username, setUsername] = React.useState<string>();
   const [shouldShowDoNotOpen, setShouldShowDoNotOpen] = React.useState<boolean>(false);
+  const [showSecretRole, setShowSecretRole] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const name = window.localStorage.getItem("username");
@@ -35,7 +37,13 @@ export const GameView = ({ game, gameCode }: Props) => {
             <div className="flex flex-row justify-center items-center w-full mb-6">
               <p className='text-md font-bold'>{game.start}</p>
             </div>
-            <div className="flex flex-col justify-center items-center w-full mb-6">
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-6" 
+              onClick={() => {
+                setShowSecretRole(prev => !prev)
+              }}>
+              {showSecretRole ? "Hide Role Info" : "Show Role Info"}
+            </button>
+            {showSecretRole && <div className="flex flex-col justify-center items-center w-full mb-6">
               <div className="flex flex-row justify-center items-center w-full mb-4">
                 <div className="max-w-3xl w-full font-mono text-sm flex flex-col">
                   <pre className="whitespace-pre-line">
@@ -43,7 +51,7 @@ export const GameView = ({ game, gameCode }: Props) => {
                   </pre>
                 </div>
               </div>
-            </div>
+            </div>}
           </div>
           {shouldShowDoNotOpen ? (
             <div className="max-w-lg w-full h-full flex flex-col self-center items-center justify-center mb-6">
@@ -70,6 +78,7 @@ export const GameView = ({ game, gameCode }: Props) => {
             </div>
           )
           }
+          <GameStateManager  gameId={game.gameId}/>
           <RemakeGame />
         </div>
       }

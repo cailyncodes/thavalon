@@ -12,6 +12,7 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
   const [players, setPlayers] = React.useState<string[]>([]);
   const [variant, setVariant] = React.useState<Variant>("thavalon");
   const [isHost, setIsHost] = React.useState(false);
+  const [host, setHost] = React.useState<string>("")
 
 
   const removePlayer = (e: React.FormEvent, index: number) => {
@@ -23,7 +24,7 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
   }
 
   const startNewGame = async (_: FormData) => {
-    await startGame({ gameId, players, variant });
+    await startGame({ gameId, host, players, variant });
     window.location.assign(`/game/${gameId}/view?gameCode=${gameCode}`);
   }
 
@@ -51,8 +52,15 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
     if (game.players !== undefined && game.players.length > 0) {
       setPlayers(game.players);
     }
+    if (game.players && !game.players.includes(player)) {
+      // on a timeout of 250ms, add the current player to the game
+      setTimeout(addCurrentPlayer, 250);
+    }
     if (game.start !== undefined) {
       window.location.assign(`/game/${gameId}/view?gameCode=${gameCode}`);
+    }
+    if (game.host) {
+      setHost(game.host);
     }
     if (game.host === player) {
       setIsHost(true);
@@ -60,7 +68,7 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
   }, [player, players, gameId]);
 
   React.useEffect(() => {
-    const interval = setInterval(fetchPlayers, 7500);
+    const interval = setInterval(fetchPlayers, 250);
     return () => clearInterval(interval);
   }
     , [fetchPlayers]);
