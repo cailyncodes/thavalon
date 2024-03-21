@@ -71,12 +71,12 @@ export const GameStateManager = ({gameId}: Props) => {
   }
 
   React.useEffect(() => {
-    const interval = setInterval(fetchGame, 3000);
+    const interval = setInterval(fetchGame, 250);
     return () => clearInterval(interval);
   }
     , [fetchGame]);
 
-  if (!game || !username || isLoading) {
+  if (!game || !game.missionToPeople || !username || isLoading) {
     return <div className="w-full flex flex-col items-center justify-between">
     <p className='text-md font-bold'>Loading...</p>
   </div>;

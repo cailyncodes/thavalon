@@ -37,7 +37,7 @@ export const GameView = ({ game, gameCode }: Props) => {
             <div className="flex flex-row justify-center items-center w-full mb-6">
               <p className='text-md font-bold'>{game.start}</p>
             </div>
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" 
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-6" 
               onClick={() => {
                 setShowSecretRole(prev => !prev)
               }}>
