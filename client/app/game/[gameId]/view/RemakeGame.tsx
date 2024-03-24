@@ -38,7 +38,7 @@ export const RemakeGame = () => {
   }
 
   return (
-    <div className="w-full flex flex-col items-center justify-between">
+    <div className="w-full flex flex-col items-center justify-between my-4">
       <form className="w-full max-w-lg flex justify-center items-center m-2" onSubmit={remakeGame}>
         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
           Remake Game

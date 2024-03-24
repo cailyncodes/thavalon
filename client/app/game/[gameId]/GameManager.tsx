@@ -13,15 +13,6 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
   const [variant, setVariant] = React.useState<Variant>("thavalon");
   const [isHost, setIsHost] = React.useState(false);
 
-
-  const removePlayer = (e: React.FormEvent, index: number) => {
-    e.preventDefault();
-    // TODO: Actually remove player
-    // const newPlayers = players.slice();
-    // newPlayers.splice(index, 1);
-    // setPlayers(newPlayers);
-  }
-
   const startNewGame = async (_: FormData) => {
     await startGame({ gameId, players, variant });
     window.location.assign(`/game/${gameId}/view?gameCode=${gameCode}`);
@@ -79,9 +70,6 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
               <div key={index} className='flex flex-row justify-center items-center w-full'>
                 <label className='mr-3'>Player {index + 1}</label>
                 <p className="border-2 border-gray-300 p-2 rounded m-2 text-gray-700 bg-white w-2/5">{player}</p>
-                <div className='ml-2'>
-                  <button onClick={e => removePlayer(e, index)} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Remove player</button>
-                </div>
               </div>
             ))}
           </div>

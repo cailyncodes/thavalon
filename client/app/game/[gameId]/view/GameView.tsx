@@ -11,6 +11,7 @@ interface Props {
 
 export const GameView = ({ game, gameCode }: Props) => {
   const [username, setUsername] = React.useState<string>();
+  const [shouldShowRole, setShouldShowRole] = React.useState<boolean>(false);
   const [shouldShowDoNotOpen, setShouldShowDoNotOpen] = React.useState<boolean>(false);
 
   React.useEffect(() => {
@@ -36,11 +37,28 @@ export const GameView = ({ game, gameCode }: Props) => {
               <p className='text-md font-bold'>{game.start}</p>
             </div>
             <div className="flex flex-col justify-center items-center w-full mb-6">
-              <div className="flex flex-row justify-center items-center w-full mb-4">
-                <div className="max-w-3xl w-full font-mono text-sm flex flex-col">
-                  <pre className="whitespace-pre-line">
-                    {game[username]}
-                  </pre>
+              <div className="flex flex-row justify-center items-center w-full">
+                <div className="max-w-3xl w-fit font-mono text-sm flex flex-col justify-center">
+                  {shouldShowRole ? (
+                    <>
+                      <pre className="whitespace-pre-line">
+                        {game[username]}
+                      </pre>
+                      <button
+                        className="bg-blue-500 hover:bg-blue-700 w-full text-white font-bold py-2 px-4 rounded w-2/5"
+                        onClick={() => setShouldShowRole(false)}
+                      >
+                        Hide Role
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      className="bg-blue-500 hover:bg-blue-700 w-full text-white font-bold py-2 px-4 rounded w-2/5"
+                      onClick={() => setShouldShowRole(true)}
+                    >
+                      Show Role
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -68,8 +86,8 @@ export const GameView = ({ game, gameCode }: Props) => {
                 Show Do Not Open
               </button>
             </div>
-          )
-          }
+          )}
+          <hr className="h-px my-2 bg-gray-200 border-0 dark:bg-gray-700"></hr>
           <RemakeGame />
         </div>
       }
