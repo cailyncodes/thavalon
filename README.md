@@ -20,7 +20,7 @@ This app is implemented as a Next JS client and Python API in a monorepo.
 
 For local development, we use [Podman](https://podman.io/) for managing containers.
 
-### Installation
+## Installation
 
 1. Clone the repo.
 1. Install Podman CLI. On Mac, use [this link](https://github.com/containers/podman/releases/download/v4.9.2/podman-installer-macos-amd64.pkg). Note: We use Podman v4.9 since v5.0 requires EFI, which is unavailable on older Mac OS versions.
@@ -29,7 +29,7 @@ For local development, we use [Podman](https://podman.io/) for managing containe
 
 We support VSCode as the editor of choice. The easiest approach is to open `thavalon.code-workspace`.
 
-### Running
+## Running
 We have developed wrapper scripts to help support development.
 
 You can start both services with our `./run.sh` script.
@@ -41,3 +41,17 @@ The first time you run this, it will take several minutes, as the `node_modules`
 Services can be stopped likewise.
 
 `./run.sh stop`
+
+## Contribution
+We follow a continuous integration model with production and next/canary/staging services.
+
+As part of this, we require all changes to be deployed to our "next" services via the "staging" branch.
+
+Please make PRs against "staging".
+
+A temporary environment will be created with Railway and a comment will be left on your PR with a link to the client and api service URLs.
+
+On merge, your changes will automatically be deployed to our "next" service as defined in our Railway account.
+
+## Deployment
+To deploy changes to production, use the [Merge Staging to Main](https://github.com/cailyncodes/thavalon/actions/workflows/merge-staging-to-main.yml) workflow. This will result in the changes being deployed to our "production" service as defined in our Railway account.
