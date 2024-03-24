@@ -27,14 +27,11 @@ def game():
     computedData = get_player_info(players, variant)
     return json.dumps(computedData), 200
 
-if __name__ == '__main__':
-    app.run(host="0.0.0.0")
-
 # get_role_descriptions - this is called when information files are generated.
 def get_role_description(role, variant = "thavalon"):
     return {
-        "Tristan": "The person you see is also Good and is aware that you are Good.\nYou and Iseult are collectively a valid Assassination target." + ("\nYou and Iseult will receive immunity from assassination if you correctly identify the Jealous Ex at the end of the game.\nYou appear to the Jealous Ex." if variant == "jealousy" else ""),
-        "Iseult": "The person you see is also Good and is aware that you are Good.\nYou and Tristan are collectively a valid Assassination target." + ("\nYou and Tristan will receive immunity from assassination if they correctly identify the Jealous Ex at the end of the game.\nYou appear to the Jealous Ex." if variant == "jealousy" else ""),
+        "Tristan": "The person you see is also Good and is aware that you are Good.\nYou and Iseult are collectively a valid Assassination target.",
+        "Iseult": "The person you see is also Good and is aware that you are Good.\nYou and Tristan are collectively a valid Assassination target." + ("\nYou appear to the Jealous Ex." if variant == "jealousy" else ""),
         "Merlin": "You know which people have Evil roles, but not who has any specific role.\nYou are a valid Assassination target.",
         "Percival": "You know which people have the Merlin or Morgana roles, but not specifically who has each.",
         "Lancelot": "You may play Reversal cards while on missions.\nYou appear Evil to Merlin.",
@@ -46,7 +43,7 @@ def get_role_description(role, variant = "thavalon"):
         "Maelagant": "You may play Reversal cards while on missions. \nLike other Evil characters, you know who else is Evil (except Colgrevance).",
         "Agravaine": "You must play Fail cards while on missions. \nIf you are on a mission that Succeeds, you may declare as Agravaine to cause it to Fail instead. \nLike other Evil characters, you know who else is Evil (except Colgrevance).",
         "Colgrevance": "You know not only who else is Evil, but what role each other Evil player possess. \nEvil players know that there is a Colgrevance, but do not know that it is you.",
-        "Jealous Ex": "You see either Iseult (if there are two lovers) or the Older Sibling (if there are no lovers).\nIf Tristan correctly identifies you at the end of the game, Tristan and Iseult will receive immunity from assassination.",
+        "Jealous Ex": "You see either Iseult (if there are two lovers) or the Older Sibling (if there are no lovers).",
         "Older Sibling": "You appear to the Jealous Ex as Iseult. You know there are no lovers in this game."
     }.get(role, "ERROR: No description available.")
 
@@ -201,7 +198,13 @@ def get_player_info(player_names, variant = "thavalon"):
 		num_evil = 1
 	"""
     good_roles_in_game = random.sample(good_roles, num_good)
-    evil_roles_in_game = random.sample(evil_roles, num_evil)
+    evil_roles_in_game = []
+    if 5 <= num_players <= 7 and random.random() <= 0.8:
+        evil_roles_without_mordred = evil_roles.copy()
+        evil_roles_without_mordred.remove("Mordred")
+        evil_roles_in_game = ["Mordred"] + random.sample(evil_roles_without_mordred, num_evil - 1)
+    else:
+        evil_roles_in_game = random.sample(evil_roles, num_evil)
 
     # if we took both lovers and the older sibling:
     # - we must remove the older sibling and add another role, or
@@ -398,7 +401,7 @@ def get_player_info(player_names, variant = "thavalon"):
     return data
 
 
-def main():
+def test():
     players = ["Alice", "Bob", "Charlie", "David", "Eve", "Frank"]
     num_players = len(players)
     if not (5 <= num_players <= 10):
@@ -412,11 +415,12 @@ def main():
     if len(players) != num_players:
         raise "Duplicate player names"
 
-    computedData = get_player_info(players)
+    computedData = get_player_info(players, "thavalon")
     print(computedData["doNotOpen"])
     for player in players:
         print(computedData[player])
 
-# uncomment to run the main function for testing
-# please leave commented out when deploying
-# main()
+# test()
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0")

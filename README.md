@@ -8,7 +8,7 @@ We also have developed some of our own rules and new roles, which you can read a
 ## Custom Rules
 We have played over a hundred games and scores of hours over the past several years. Through this, we have developed some custom rules which we think greatly improve the experience and balance of the game.
 
-1. In 5, 6, and 7 player games, Modred must be in play.
+1. In 5, 6, and 7 player games, Modred must be in play (up to an 80% probability).
 2. In 6 player games, we always play our "Jealousy" variant.
 
 ### Additional Roles
