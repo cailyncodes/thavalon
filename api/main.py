@@ -28,7 +28,7 @@ def game():
     return json.dumps(computedData), 200
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0")
 
 # get_role_descriptions - this is called when information files are generated.
 def get_role_description(role, variant = "thavalon"):

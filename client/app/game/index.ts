@@ -47,6 +47,8 @@ export async function startGame(data: { gameId: string, players: string[], varia
     switch (env) {
       case 'development':
         return 'localhost:5000'
+      case 'next':
+        return 'next-api.thavalon.quest'
       case 'production':
         return "api.thavalon.quest"
       default:

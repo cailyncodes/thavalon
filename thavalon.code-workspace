@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"name": "thavalon",
+			"path": ".",
+		},
+		{
+			"name": "api",
+			"path": "api"
+		},
+		{
+			"name": "client",
+			"path": "client"
+		}
+	]
+}

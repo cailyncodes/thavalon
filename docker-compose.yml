@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  web:
+    image: node:20
+    ports:
+      - "6565:3000" # 3000 is the default Next.js port
+    volumes:
+      - ./client:/code
+      - node_modules:/code/node_modules
+      - ./client/node_modules:/cache/node_modules
+      - /code/.next
+    working_dir: /code
+    stdin_open: true
+    tty: true
+    command: ./entrypoint.sh
+  api:
+    image: rapidfort/flaskapp
+    ports:
+      - "6464:5000" # 5000 is the default Flask port
+    volumes:
+      - ./api:/code
+    working_dir: /code
+    command: ./entrypoint.sh
+
+volumes:
+  node_modules:
