@@ -3,7 +3,7 @@ import { put } from "@vercel/blob"
 import { kv } from "@vercel/kv";
 import { randomUUID } from "crypto";
 
-export type Variant = "thavalon" | "avalon" | "jealousy";
+export type Variant = "thavalon" | "esoteric" | "jealousy";
 
 // Game data before running script to determine start player
 interface ProtoGame {

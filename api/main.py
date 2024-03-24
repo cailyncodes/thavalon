@@ -44,7 +44,9 @@ def get_role_description(role, variant = "thavalon"):
         "Agravaine": "You must play Fail cards while on missions. \nIf you are on a mission that Succeeds, you may declare as Agravaine to cause it to Fail instead. \nLike other Evil characters, you know who else is Evil (except Colgrevance).",
         "Colgrevance": "You know not only who else is Evil, but what role each other Evil player possess. \nEvil players know that there is a Colgrevance, but do not know that it is you.",
         "Jealous Ex": "You see either Iseult (if there are two lovers) or the Older Sibling (if there are no lovers).",
-        "Older Sibling": "You appear to the Jealous Ex as Iseult. You know there are no lovers in this game."
+        "Older Sibling": "You appear to the Jealous Ex as Iseult. You know there are no lovers in this game.",
+        "Unicorn": "You are a Good role that sees the lovers (Tristan and Iseult, if they are in the game) or the Older Sibling (if they are in the game), and Mordred (if they are in the game). You do not specifically know who are each.\nYou are a valid Assassination target.",
+        "Politician": "You are an Evil role that can play Cancelation cards while on missions. You are aware of the presence of Lancelot, but not who they are. You know who Maelagant is, if they are in play.\nA Cancelation card removes all Reversal cards.",
     }.get(role, "ERROR: No description available.")
 
 
@@ -111,6 +113,14 @@ def get_role_information(my_player, players):
         ],
         "Jealous Ex": other_evils,
         "Older Sibling": [],
+        "Unicorn": [
+            "{} is Tristan, Iseult, the Older Sibling, or Mordred.".format(player.name)
+            for player in players
+            if player.role is "Tristan" or player.role is "Iseult" or player.role is "Older Sibling" or player.role is "Mordred"
+        ],
+        "Politician": other_evils + (["Lancelot is in the game."] if any(player.role == "Lancelot" for player in players) else [
+            "Lancelot is not in the game."
+        ]) + ["{} is Maelagant.".format(player.name) for player in players if player.role == "Maelagant"],
     }.get(my_player.role, [])
 
 
@@ -175,6 +185,11 @@ def get_player_info(player_names, variant = "thavalon"):
     if variant == "jealousy" and num_players > 5:
         good_roles.append("Older Sibling")
         evil_roles.append("Jealous Ex")
+
+    # 6 plus
+    if variant == "esoteric" and num_players > 5:
+        good_roles.append("Unicorn")
+        evil_roles.append("Politician")
 
     # 7 plus
     if num_players > 6:
@@ -284,7 +299,7 @@ def get_player_info(player_names, variant = "thavalon"):
             good_roles_in_game.append("Tristan")
             good_roles_in_game.append("Iseult")
 
-    # if we took no lovers and not the older sibling:
+    # if we took no lovers and not the older sibling and not the unicorn:
     # we must replace one role with a new role
     # if there are not enough roles to replace, we remove the older sibling and one other role,
     # and add the lovers
@@ -292,6 +307,7 @@ def get_player_info(player_names, variant = "thavalon"):
         sum(gr in ["Tristan", "Iseult"] for gr in good_roles_in_game) == 0
         and "Older Sibling" not in good_roles_in_game
         and num_good > 1
+        and "Unicorn" not in good_roles_in_game
     ):
         available_roles = (
             set(good_roles) - set(good_roles_in_game) - set(["Tristan", "Iseult", "Older Sibling"])
@@ -370,7 +386,7 @@ def get_player_info(player_names, variant = "thavalon"):
         player.string = (
             bar
             + "You are "
-            + ("the " if player.role == "Jealous Ex" or player.role == "Older Sibling" else "")
+            + ("the " if player.role == "Jealous Ex" or player.role == "Older Sibling" or player.role == "Unicorn" or player.role == "Politican" else "")
             + player.role
             + " ["
             + player.team
@@ -402,7 +418,7 @@ def get_player_info(player_names, variant = "thavalon"):
 
 
 def test():
-    players = ["Alice", "Bob", "Charlie", "David", "Eve", "Frank"]
+    players = ["Alice", "Bob", "Charlie", "David", "Eve"]
     num_players = len(players)
     if not (5 <= num_players <= 10):
         raise "Invalid number of players"
@@ -415,7 +431,7 @@ def test():
     if len(players) != num_players:
         raise "Duplicate player names"
 
-    computedData = get_player_info(players, "thavalon")
+    computedData = get_player_info(players, "esoteric")
     print(computedData["doNotOpen"])
     for player in players:
         print(computedData[player])

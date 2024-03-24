@@ -78,6 +78,7 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
               <select className="border-2 border-gray-300 p-2 rounded m-2 text-gray-700 bg-white w-2/5" name="variant" value={variant} onChange={e => setVariant(e.target.value as Variant)}>
                 <option value="thavalon">Thavalon</option>
                 <option value="jealousy">Jealousy</option>
+                <option value="esoteric">Esoteric</option>
               </select>
               <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" type="submit">
                 Start
