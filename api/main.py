@@ -166,7 +166,7 @@ def get_player_info(player_names, variant = "thavalon"):
     print("Here is the number of players: ", num_players)
     if num_players < 7:
         num_evil = 2
-    elif num_players < 10:
+    elif num_players < 9:
         num_evil = 3
     else:
         num_evil = 4
