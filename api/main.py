@@ -3,7 +3,6 @@ import json as jsonlib
 import os
 import random
 from multiprocessing import Manager
-from typing import Any
 
 import aioredis
 import sanic
@@ -683,4 +682,4 @@ def test():
 
 
 if __name__ == "__main__":
-    test()
+    app.run(port=os.getenv("PORT", default=5000))
