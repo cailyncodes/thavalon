@@ -60,6 +60,9 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
       const env = process.env.RAILWAY_ENVIRONMENT_NAME || 'development'
 
       const origin = (() => {
+        if (env.startsWith("thavalon-")) {
+          return `api-${env.substring("client-".length)}`
+        }
         switch (env) {
           case 'development':
             return 'localhost:6464'
