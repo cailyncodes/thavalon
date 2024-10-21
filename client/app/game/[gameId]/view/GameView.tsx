@@ -3,6 +3,7 @@
 import React from "react"
 import { Game } from "../../index"
 import { RemakeGame } from "./RemakeGame"
+import useWebSocket from "react-use-websocket"
 
 interface Props {
   game: Game
@@ -13,6 +14,13 @@ export const GameView = ({ game, gameCode }: Props) => {
   const [username, setUsername] = React.useState<string>();
   const [shouldShowRole, setShouldShowRole] = React.useState<boolean>(false);
   const [shouldShowDoNotOpen, setShouldShowDoNotOpen] = React.useState<boolean>(false);
+  const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
+    `ws://localhost:6464/ws/${game.gameId}`,
+    {
+      share: true,
+      shouldReconnect: () => true,
+    }
+  )
 
   React.useEffect(() => {
     const name = window.localStorage.getItem("username");

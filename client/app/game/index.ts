@@ -34,45 +34,10 @@ export async function createGame(host: string) {
   return gameId
 }
 
-export async function startGame(data: { gameId: string, players: string[], variant: Variant }) {
-  const game: ProtoGame = {
-    gameId: data.gameId,
-    players: data.players,
-    variant: data.variant
-  }
-
-  const env = process.env.RAILWAY_ENVIRONMENT_NAME || 'development'
-
-  const origin = (() => {
-    switch (env) {
-      case 'development':
-        return 'localhost:6464'
-      case 'next':
-        return 'next-api.thavalon.quest'
-      case 'production':
-        return "api.thavalon.quest"
-      default:
-        throw new Error('Unknown environment')
-    }
-  })()
-
-  const url = origin?.includes('localhost') ? `http://${origin}` : `https://${origin}`
-
-  const response = await fetch(
-    `${url}/api/game`,
-    {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(game),
-    }
-  )
-
-  const gameData = await response.json()
-
+export async function startGame(gameId: string, gameData: unknown) {
   const file = new Blob([JSON.stringify(gameData)], { type: "application/json" });
-  await put(`${data.gameId}.json`, file, {
+  // @ts-ignore
+  await put(`${gameId}.json`, file, {
     access: 'public',
     addRandomSuffix: false,
     token: process.env.DB_READ_WRITE_TOKEN
@@ -105,23 +70,4 @@ export async function getGameId(gameCode: string) {
   const gameId = await kv.get(gameCode.toUpperCase())
 
   return gameId
-}
-
-export async function addPlayer(gameId: string, player: string) {
-  const game = await getGame(gameId)
-  const players = game.players || []
-
-  if (players.includes(player)) {
-    return
-  }
-
-  players.push(player)
-  game.players = players
-
-  const file = new Blob([JSON.stringify(game)], { type: "application/json" });
-  await put(`${gameId}.json`, file, {
-    access: 'public',
-    addRandomSuffix: false,
-    token: process.env.DB_READ_WRITE_TOKEN,
-  })
 }

@@ -14,13 +14,15 @@ services:
     tty: true
     command: ./entrypoint.sh
   api:
-    image: rapidfort/flaskapp
+    image: sanicframework/sanic:latest-py3.10
     ports:
-      - "6464:5000" # 5000 is the default Flask port
+      - "6464:8000" # 8000 is the default Sanic port
     volumes:
       - ./api:/code
     working_dir: /code
     command: ./entrypoint.sh
+    env_file:
+      - ./api/.env.local
 
 volumes:
   node_modules:

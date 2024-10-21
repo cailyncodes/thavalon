@@ -1,11 +1,13 @@
 "use client"
 import React from "react"
 import { createGame, createGameCode, getGameId } from "./game/index";
+import { useRouter } from "next/navigation";
 
 const Lobby = () => {
   const [isInitialDelay, setIsInitialDelay] = React.useState(true);
   const [isLoading, setIsLoading] = React.useState(false);
   const [username, setUsername] = React.useState<string>();
+  const router = useRouter()
 
   const createNewGame = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,7 +18,7 @@ const Lobby = () => {
     setIsLoading(true);
     const gameId = await createGame(username);
     const gameCode = await createGameCode(gameId);
-    window.location.assign(`/game/${gameId}?gameCode=${gameCode}`);
+    router.push(`/game/${gameId}?gameCode=${gameCode}`);
     return false;
   }
 
@@ -29,7 +31,7 @@ const Lobby = () => {
     const formData = new FormData(e.currentTarget);
     const gameCode = formData.get("gameCode");
     const gameId = await getGameId(gameCode as string);
-    window.location.assign(`/game/${gameId}?gameCode=${gameCode}`);
+    router.push(`/game/${gameId}?gameCode=${gameCode}`);
     return false;
   };
 
