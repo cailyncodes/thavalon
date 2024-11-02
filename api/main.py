@@ -1,37 +1,247 @@
-import flask
-import json
+""""""
+import json as jsonlib
+import os
 import random
+from multiprocessing import Manager
 
-app = flask.Flask(__name__)
+import aioredis
+import sanic
+from aioredis import Redis
+from sanic import Request, Websocket, json, text
+from sanic.log import logger
+from sanic_ext import Extend
 
-@app.route('/')
-def index():
-    return 'Hello, World!'
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+REDIS_CHANNEL = "game_lobby"
 
-@app.route('/api/game', methods=['POST'])
-def game():
-    data = flask.request.json
-    players = data.get('players', [])
-    variant = data.get('variant', 'thavalon')
+app = sanic.Sanic(__name__)
+app.config.EVENT_AUTOREGISTER = True
+app.config.CORS_ORIGINS = "*"
+Extend(app)
 
+clients: dict[str, set[Websocket]] = dict()
+
+
+@app.main_process_start
+async def main_process_start(app: sanic.Sanic):
+    print("Main process started")
+    m = Manager()
+    app.shared_ctx.d = m.dict()
+
+
+@app.before_server_start
+async def setup(app: sanic.Sanic):
+    logger.debug("Setup started")
+    app.ctx.redis = await aioredis.from_url(REDIS_URL, decode_responses=True)
+
+    if not await validate_redis_connection(app.ctx.redis):
+        logger.error("Failed to connect to Redis")
+        raise Exception("Failed to connect to Redis")
+
+    # Start the subscriber task, which listens for messages on the Redis channel
+    app.add_task(subscriber(app), name="subscriber")
+
+
+async def validate_redis_connection(redis: Redis):
+    # Test Redis connection by setting and getting a key
+    try:
+        random_key = f"test_key_{random.randint(0, 1000)}"
+        await redis.set(random_key, "test_value")
+        test_value = await redis.get(random_key)
+        if test_value == "test_value":
+            logger.debug("Redis connection test successful!")
+        else:
+            logger.debug(f"Redis connection test failed: Unexpected value {test_value}")
+        await redis.delete(random_key)
+    except Exception as e:
+        logger.error(f"Redis connection test failed: {e}")
+        return False
+
+    return True
+
+
+async def subscriber(app: sanic.Sanic):
+    logger.debug("Subscriber started")
+
+    try:
+        redis: Redis = app.ctx.redis
+        pubsub = redis.pubsub()
+        # Enable listening to the channel
+        await pubsub.subscribe(REDIS_CHANNEL)
+
+        # Listen for messages
+        async for message in pubsub.listen():
+            try:
+                logger.debug("Subscriber received message: %s", message)
+                # skip the first message
+                if message["type"] == "subscribe":
+                    continue
+                
+                game_id = message["data"]
+                if game_id not in clients:
+                    continue
+                for client in clients[game_id]:
+                    logger.debug("Sending update to client: %s", repr(client))
+                    await publish_update(client, game_id)
+            except Exception as e:
+                # Log the error and continue
+                logger.error("Subscriber error: %s", e)
+                continue
+
+    except Exception as e:
+        logger.error("Subscriber error: %s", e)
+    finally:
+        logger.info("Subscriber stopped")
+
+
+async def publisher(app: sanic.Sanic, game_id: str):
+    redis: Redis = app.ctx.redis
+    await redis.publish(REDIS_CHANNEL, game_id)
+
+
+async def publish_update(ws: Websocket, game_id: str):
+    game = app.shared_ctx.d[game_id]
+    try:
+        logger.debug("Sending update to client: %s", game)
+        await ws.send(jsonlib.dumps(game))
+    except Exception as e:
+        logger.error("Failed to send update: %s", e)
+        try:
+            clients[game_id].remove(ws)
+        except (KeyError, ValueError):
+            pass
+        await ws.close()
+
+
+@app.websocket("/ws/<game_id>")
+async def connection(request: Request, ws: Websocket, game_id: str):
+    logger.debug("Connection from: %s", repr(ws))
+
+    # Acknowledge the connection
+    try:
+        ack_obj = {"type": "ack", "message": "Connected", "should_ignore": True}
+        await ws.send(jsonlib.dumps(ack_obj))
+    except Exception as e:
+        logger.error("Failed to send ack: %s", e)
+        await ws.close()
+        return
+
+    data = {}
+    # Validate the connection message
+    try:
+        data = await ws.recv()
+        logger.debug("Received data: %s", data)
+        data = jsonlib.loads(data)
+        logger.debug("Parsed data: %s", data)
+        if data.get("type") != "connect" or not data.get("message", {}).get("username"):
+            logger.error("Invalid connection message, closing connection")
+            await ws.close()
+            return
+    except Exception as e:
+        logger.error(f"Failed to receive connection message: {e}")
+        await ws.close()
+        return
+
+    try:
+        # Add the client to the list
+        clients[game_id] = clients.get(game_id, set())
+        clients[game_id].add(ws)
+
+        # Get the username
+        username = data["message"]["username"]
+        logger.debug("Username: %s", username)
+
+        # If we don't have a game, create one
+        app.shared_ctx.d.setdefault(game_id, {})
+
+        # Add the player to the game
+        game = app.shared_ctx.d[game_id]
+        game["players"] = game.get("players", [])
+        # Do not allow duplicate usernames
+        if username not in game["players"]:
+            game["players"].append(username)
+        app.shared_ctx.d[game_id] = game
+
+        # Check the game state
+        logger.debug(app.shared_ctx.d)
+
+        # Trigger an update
+        await publisher(app, game_id)
+
+        # Listen for messages
+        while True:
+            data = await ws.recv()
+            data = jsonlib.loads(data)
+            logger.debug("Received data: %s", data)
+            if data.get("type") == "start":
+                logger.debug("Starting game")
+                app.shared_ctx.d[game_id] = {**app.shared_ctx.d[game_id], **data}
+                await publisher(app, game_id)
+
+    except Exception as e:
+        logger.error(e)
+    finally:
+        logger.info("DISCONNECTED")
+        try:
+            clients[game_id].remove(ws)
+        except (KeyError, ValueError):
+            pass
+        game = app.shared_ctx.d[game_id]
+        try:
+            game["players"].remove(username)
+        except (KeyError, ValueError):
+            pass
+        if len(game["players"]) == 0:
+            del app.shared_ctx.d[game_id]
+        else:
+            app.shared_ctx.d[game_id] = game
+        await publisher(app, game_id)
+        await ws.close()
+
+
+@app.after_server_stop
+async def cleanup(app, loop):
+    logger.debug("Cleanup started")
+    await app.ctx.redis.close()
+    await app.cancel_task("subscriber", raise_exception=False)
+    app.purge_tasks()
+
+
+# Routes
+@app.route("/")
+def index(_: Request):
+    return text("Yes, I am up!")
+
+
+@app.route("/api/game", methods=["POST"])
+def start_game(request: Request):
+    data = request.json
+    players = data.get("players", [])
+    variant = data.get("variant", "thavalon")
+    print("=== Received data ===")
     num_players = len(players)
     if not (5 <= num_players <= 10):
-        return json.dumps({"error": "Invalid number of players"}), 400
-    
+        return json({"error": "Invalid number of players"}, status=400)
+
     players = set(players)  # use as set to avoid duplicate players
     players = list(players)
     random.shuffle(players)  # ensure random order, though set should already do that
     if len(players) != num_players:
-        return json.dumps({"error": "Duplicate player names"}), 400
+        return json({"error": "Duplicate player names"}, status=400)
 
-    computedData = get_player_info(players, variant)
-    return json.dumps(computedData), 200
+    computed_data = get_player_info(players, variant)
+    return json(computed_data)
+
+
+###### ========= Game logic ========= ######
+
 
 # get_role_descriptions - this is called when information files are generated.
-def get_role_description(role, variant = "thavalon"):
+def get_role_description(role, variant="thavalon"):
     return {
         "Tristan": "The person you see is also Good and is aware that you are Good.\nYou and Iseult are collectively a valid Assassination target.",
-        "Iseult": "The person you see is also Good and is aware that you are Good.\nYou and Tristan are collectively a valid Assassination target." + ("\nYou appear to the Jealous Ex." if variant == "jealousy" else ""),
+        "Iseult": "The person you see is also Good and is aware that you are Good.\nYou and Tristan are collectively a valid Assassination target."
+        + ("\nYou appear to the Jealous Ex." if variant == "jealousy" else ""),
         "Merlin": "You know which people have Evil roles, but not who has any specific role.\nYou are a valid Assassination target.",
         "Percival": "You know which people have the Merlin or Morgana roles, but not specifically who has each.",
         "Lancelot": "You may play Reversal cards while on missions.\nYou appear Evil to Merlin.",
@@ -116,22 +326,36 @@ def get_role_information(my_player, players):
         "Unicorn": [
             "{} is Tristan, Iseult, the Older Sibling, or Mordred.".format(player.name)
             for player in players
-            if player.role is "Tristan" or player.role is "Iseult" or player.role is "Older Sibling" or player.role is "Mordred"
+            if player.role is "Tristan"
+            or player.role is "Iseult"
+            or player.role is "Older Sibling"
+            or player.role is "Mordred"
         ],
-        "Politician": other_evils + (["Lancelot is in the game."] if any(player.role == "Lancelot" for player in players) else [
-            "Lancelot is not in the game."
-        ]) + ["{} is Maelagant.".format(player.name) for player in players if player.role == "Maelagant"],
+        "Politician": other_evils
+        + (
+            ["Lancelot is in the game."]
+            if any(player.role == "Lancelot" for player in players)
+            else ["Lancelot is not in the game."]
+        )
+        + [
+            "{} is Maelagant.".format(player.name)
+            for player in players
+            if player.role == "Maelagant"
+        ],
     }.get(my_player.role, [])
 
 
 class Player:
-    # players have the following traits
-    # name: the name of the player as fed into system arguments
-    # role: the role the player possesses
-    # team: whether hte player is good or evil
-    # type: information or ability
-    # seen: a list of what they will see
-    # modifier: the random modifier this player has [NOT CURRENTLY UTILIZED]
+    """
+    players have the following traits
+    * name: the name of the player as fed into system arguments
+    * role: the role the player possesses
+    * team: whether the player is good or evil
+    * type: information or ability
+    * seen: a list of what they will see
+    * modifier: the random modifier this player has [NOT CURRENTLY UTILIZED]
+    """
+
     def __init__(self, name):
         self.name = name
         self.role = None
@@ -153,7 +377,7 @@ class Player:
         pass
 
 
-def get_player_info(player_names, variant = "thavalon"):
+def get_player_info(player_names, variant="thavalon"):
     num_players = len(player_names)
 
     # create player objects
@@ -217,7 +441,9 @@ def get_player_info(player_names, variant = "thavalon"):
     if 5 <= num_players <= 7 and random.random() <= 0.8:
         evil_roles_without_mordred = evil_roles.copy()
         evil_roles_without_mordred.remove("Mordred")
-        evil_roles_in_game = ["Mordred"] + random.sample(evil_roles_without_mordred, num_evil - 1)
+        evil_roles_in_game = ["Mordred"] + random.sample(
+            evil_roles_without_mordred, num_evil - 1
+        )
     else:
         evil_roles_in_game = random.sample(evil_roles, num_evil)
 
@@ -225,11 +451,14 @@ def get_player_info(player_names, variant = "thavalon"):
     # - we must remove the older sibling and add another role, or
     # - remove both lovers and add two other roles
     if (
-        sum(gr in ["Tristan", "Iseult", "Older Sibling"] for gr in good_roles_in_game) == 3
+        sum(gr in ["Tristan", "Iseult", "Older Sibling"] for gr in good_roles_in_game)
+        == 3
         and num_good > 1
     ):
         available_roles = (
-            set(good_roles) - set(good_roles_in_game) - set(["Tristan", "Iseult", "Older Sibling"])
+            set(good_roles)
+            - set(good_roles_in_game)
+            - set(["Tristan", "Iseult", "Older Sibling"])
         )
         if len(available_roles) < 2:
             good_roles_in_game.remove("Older Sibling")
@@ -255,7 +484,9 @@ def get_player_info(player_names, variant = "thavalon"):
         and num_good > 1
     ):
         available_roles = (
-            set(good_roles) - set(good_roles_in_game) - set(["Tristan", "Iseult", "Older Sibling"])
+            set(good_roles)
+            - set(good_roles_in_game)
+            - set(["Tristan", "Iseult", "Older Sibling"])
         )
         if random.choice([True, False]):
             good_roles_in_game.remove("Older Sibling")
@@ -286,7 +517,9 @@ def get_player_info(player_names, variant = "thavalon"):
 
         # if there are no good roles left, we need to add in a lover
         available_roles = (
-            set(good_roles) - set(good_roles_in_game) - set(["Tristan", "Iseult", "Older Sibling"])
+            set(good_roles)
+            - set(good_roles_in_game)
+            - set(["Tristan", "Iseult", "Older Sibling"])
         )
 
         if random.choice([True, False]) and available_roles:
@@ -310,7 +543,9 @@ def get_player_info(player_names, variant = "thavalon"):
         and "Unicorn" not in good_roles_in_game
     ):
         available_roles = (
-            set(good_roles) - set(good_roles_in_game) - set(["Tristan", "Iseult", "Older Sibling"])
+            set(good_roles)
+            - set(good_roles_in_game)
+            - set(["Tristan", "Iseult", "Older Sibling"])
         )
         if len(available_roles) == 0:
             good_roles_in_game.remove("Older Sibling")
@@ -320,7 +555,6 @@ def get_player_info(player_names, variant = "thavalon"):
             rerolled = random.choice(good_roles_in_game)
             good_roles_in_game.remove(rerolled)
             good_roles_in_game.append(random.sample(set(available_roles), 1)[0])
-    
 
     # roles after validation
     # print(good_roles_in_game)
@@ -373,8 +607,8 @@ def get_player_info(player_names, variant = "thavalon"):
             ep.add_info(
                 [
                     "{} is Iseult or the Older Sibling.".format(player.name)
-                        for player in players
-                        if player.role == "Iseult" or player.role == "Older Sibling"
+                    for player in players
+                    if player.role == "Iseult" or player.role == "Older Sibling"
                 ]
             )
         if ep.is_assassin:
@@ -386,7 +620,14 @@ def get_player_info(player_names, variant = "thavalon"):
         player.string = (
             bar
             + "You are "
-            + ("the " if player.role == "Jealous Ex" or player.role == "Older Sibling" or player.role == "Unicorn" or player.role == "Politican" else "")
+            + (
+                "the "
+                if player.role == "Jealous Ex"
+                or player.role == "Older Sibling"
+                or player.role == "Unicorn"
+                or player.role == "Politican"
+                else ""
+            )
             + player.role
             + " ["
             + player.team
@@ -417,26 +658,28 @@ def get_player_info(player_names, variant = "thavalon"):
     return data
 
 
+###### ========= End Game logic ========= ######
+
+###### ========= Test ========= ######
+
+
 def test():
     players = ["Alice", "Bob", "Charlie", "David", "Eve"]
     num_players = len(players)
     if not (5 <= num_players <= 10):
-        raise "Invalid number of players"
+        raise Exception("Invalid number of players")
 
     players = set(players)  # use as set to avoid duplicate players
     players = list(players)  # convert to list
-    random.shuffle(
-        players
-    )  # ensure random order, though set should already do that
+    random.shuffle(players)  # ensure random order, though set should already do that
     if len(players) != num_players:
-        raise "Duplicate player names"
+        raise Exception("Duplicate player names")
 
-    computedData = get_player_info(players, "esoteric")
-    print(computedData["doNotOpen"])
+    computed_data = get_player_info(players, "esoteric")
+    print(computed_data["doNotOpen"])
     for player in players:
-        print(computedData[player])
+        print(computed_data[player])
 
-# test()
 
-if __name__ == '__main__':
-    app.run(host="0.0.0.0")
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=os.getenv("PORT", default=5000))

@@ -8,13 +8,7 @@ export default function GameHome({
   params: { gameId: string };
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
-  const initialPlayersParam = searchParams['initial_players[]']
   const gameCodeParam = searchParams['gameCode']
-
-  let initialPlayers: string[] = []
-  if (Array.isArray(initialPlayersParam)) {
-    initialPlayers = initialPlayersParam
-  }
 
   let gameCode: string | undefined = undefined
   if (typeof gameCodeParam === 'string') {
