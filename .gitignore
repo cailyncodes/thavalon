@@ -38,3 +38,6 @@ next-env.d.ts
 # python
 *.pyc
 __pycache__/
+
+# intellij
+.idea
