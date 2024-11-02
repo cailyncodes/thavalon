@@ -9,5 +9,7 @@
     "**/Thumbs.db": true,
     "**/.next": true,
     "**/.gitkeep": true,
+    "api": true,
+    "client": true,
   }
 }
