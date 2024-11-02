@@ -9,9 +9,36 @@ interface GameManagerProps {
   gameCode?: string;
 }
 
+type CommunicationChannel = "ws" | "http"
+
+function getDomain(env?: string) {
+  env = env || 'development'
+
+  if (env.startsWith("thavalon-")) {
+    return `api-${env.substring("client-".length)}`
+  }
+  switch (env) {
+    case 'development':
+      return 'localhost:6464'
+    case 'next':
+      return 'next-api.thavalon.quest'
+    case 'production':
+      return "api.thavalon.quest"
+    default:
+      throw new Error('Unknown environment')
+  }
+}
+
+function getUrl(env: string | undefined, channel: CommunicationChannel) {
+  const origin = getDomain(env);
+  return origin?.includes('localhost') ? `${channel}://${origin}` : `${channel}s://${origin}`
+}
+
 export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
+  const wsUrl = getUrl(process.env.RAILWAY_ENVIRONMENT_NAME, "ws")
+  const httpUrl = getUrl(process.env.RAILWAY_ENVIRONMENT_NAME, "http")
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
-    `ws://localhost:6464/ws/${gameId}`,
+    `${wsUrl}/ws/${gameId}`,
     {
       share: true,
       shouldReconnect: () => true,
@@ -41,11 +68,12 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
       setIsStarted(true);
     }
     // @ts-expect-error
-    if (lastJsonMessage && lastJsonMessage.players?.length > 0) {
+    if (lastJsonMessage?.players?.length > 0) {
       // @ts-expect-error
       setPlayers(lastJsonMessage.players);
     }
   }, [lastJsonMessage]);
+  
 
   const startNewGame = React.useCallback(async (_: FormData) => {
     console.debug("Starting new game")
@@ -57,27 +85,7 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
         variant: variant
       }
 
-      const env = process.env.RAILWAY_ENVIRONMENT_NAME || 'development'
-
-      const origin = (() => {
-        if (env.startsWith("thavalon-")) {
-          return `api-${env.substring("client-".length)}`
-        }
-        switch (env) {
-          case 'development':
-            return 'localhost:6464'
-          case 'next':
-            return 'next-api.thavalon.quest'
-          case 'production':
-            return "api.thavalon.quest"
-          default:
-            throw new Error('Unknown environment')
-        }
-      })()
-
-      const url = origin?.includes('localhost') ? `http://${origin}` : `https://${origin}`
-
-      const fullUrl = `${url}/api/game`
+      const fullUrl = `${httpUrl}/api/game`
       let response;
       try {
         response = await fetch(
@@ -102,7 +110,7 @@ export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
 
     await startGame(gameId, response);
     sendJsonMessage({ type: "start" });
-  }, [gameId, players, variant, sendJsonMessage]);
+  }, [gameId, players, variant, sendJsonMessage, httpUrl]);
 
   React.useEffect(() => {
     const username = window.localStorage.getItem("username");

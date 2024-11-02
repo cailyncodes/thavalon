@@ -10,6 +10,7 @@ export default async function GameHome({
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
   const game = await getGame(params.gameId)
+  console.log(game)
   const gameCode = (searchParams['gameCode'] as string).toUpperCase()
 
   return (
