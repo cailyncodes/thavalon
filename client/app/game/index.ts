@@ -22,7 +22,7 @@ export interface Game extends ProtoGame {
 
 export async function createGame(host: string) {
   const gameId = randomUUID();
-  
+
   const file = new Blob([JSON.stringify({ gameId, host, players: [host] })], { type: "application/json" });
   await put(`${gameId}.json`, file, {
     access: 'public',
