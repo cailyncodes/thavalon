@@ -7,36 +7,11 @@ import { useRouter } from 'next/navigation';
 interface GameManagerProps {
   gameId: string;
   gameCode?: string;
+  wsUrl: string;
+  httpUrl: string;
 }
 
-type CommunicationChannel = "ws" | "http"
-
-function getDomain(env?: string) {
-  env = env || 'development'
-
-  if (env.startsWith("thavalon-")) {
-    return `api-${env.substring("client-".length)}`
-  }
-  switch (env) {
-    case 'development':
-      return 'localhost:6464'
-    case 'next':
-      return 'next-api.thavalon.quest'
-    case 'production':
-      return "api.thavalon.quest"
-    default:
-      throw new Error('Unknown environment')
-  }
-}
-
-function getUrl(env: string | undefined, channel: CommunicationChannel) {
-  const origin = getDomain(env);
-  return origin?.includes('localhost') ? `${channel}://${origin}` : `${channel}s://${origin}`
-}
-
-export const GameManager = ({ gameId, gameCode }: GameManagerProps) => {
-  const wsUrl = getUrl(process.env.RAILWAY_ENVIRONMENT_NAME, "ws")
-  const httpUrl = getUrl(process.env.RAILWAY_ENVIRONMENT_NAME, "http")
+export const GameManager = ({ gameId, gameCode, wsUrl, httpUrl }: GameManagerProps) => {
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
     `${wsUrl}/ws/${gameId}`,
     {
