@@ -58,8 +58,11 @@ export async function getGame(gameId: string): Promise<Game> {
 }
 
 export async function createGameCode(gameId: string) {
-  const code = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789"
-  const gameCode = code.split('').sort(() => Math.random() - 0.5).slice(0, 4).join('')
+  // see https://random-word-api.vercel.app/
+  const response = await fetch(
+    'https://random-word-api.vercel.app/api?words=1&length=4'
+  )
+  const gameCode = (await response.json())[0]
 
   kv.set(gameCode, gameId)
 
