@@ -8,7 +8,7 @@ function getDomain(env?: string) {
   env = env || 'development'
 
   if (env.startsWith("thavalon-")) {
-    return `api-${env.substring("client-".length)}`
+    return `api-${env}.up.railway.app`
   }
   switch (env) {
     case 'development':
