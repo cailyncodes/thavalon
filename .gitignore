@@ -41,3 +41,6 @@ __pycache__/
 
 # intellij
 .idea
+
+# application data
+api/volume

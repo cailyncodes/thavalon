@@ -20,6 +20,7 @@ services:
       - "6464:8000" # 8000 is the default Sanic port
     volumes:
       - ./api:/code
+      - ./api/volume:/etc/stats
     working_dir: /code
     command: ./entrypoint.sh
     env_file:

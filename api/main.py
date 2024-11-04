@@ -1,4 +1,5 @@
 """"""
+import hashlib
 import json as jsonlib
 import os
 import random
@@ -11,6 +12,8 @@ from sanic import Request, Websocket, json, text
 from sanic.log import logger
 from sanic_ext import Extend
 
+from dal.stats import StatsDAL
+
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 REDIS_CHANNEL = "game_lobby"
 
@@ -21,6 +24,7 @@ Extend(app)
 
 clients: dict[str, set[Websocket]] = dict()
 
+stats_dal = StatsDAL()
 
 @app.main_process_start
 async def main_process_start(app: sanic.Sanic):
@@ -212,6 +216,37 @@ async def cleanup(app, loop):
 def index(_: Request):
     return text("Yes, I am up!")
 
+def validate_access(request: Request):
+    code = request.args.get("code")
+    if not code:
+        return json({"error": "Code is required"}, status=400)
+    
+    # Encrypt the provided code to compare with the stored hash
+    hash_code = hashlib.sha256(code.encode()).hexdigest()
+    if hash_code != "9671014645ce9d6f8bae746fded25064937658d712004bd01d8f4c093c387bf3":
+        return json({"error": "Invalid code"}, status=400)
+    return None
+
+@app.route("/api/stats", methods=["GET"])
+async def get_stats(request: Request):
+    error = validate_access(request)
+    if error:
+        return error
+
+    stats = stats_dal.get_stats()
+    return json(stats)
+
+
+@app.route("/api/stats", methods=["POST"])
+async def update_stats(request: Request):
+    error = validate_access(request)
+    if error:
+        return error
+    
+    stats = request.json
+    stats_dal.update_stats(stats)
+    return json({"message": "Stats updated"})
+
 
 @app.route("/api/game", methods=["POST"])
 def start_game(request: Request):
@@ -387,7 +422,7 @@ def get_player_info(player_names, variant="thavalon"):
         players.append(player)
 
     # number of good and evil roles
-    print("Here is the number of players: ", num_players)
+    # print("Here is the number of players: ", num_players)
     if num_players < 7:
         num_evil = 2
     elif num_players < 9:
@@ -548,7 +583,10 @@ def get_player_info(player_names, variant="thavalon"):
             - set(["Tristan", "Iseult", "Older Sibling"])
         )
         if len(available_roles) == 0:
-            good_roles_in_game.remove("Older Sibling")
+            rerolled = random.choice(good_roles_in_game)
+            good_roles_in_game.remove(rerolled)
+            rerolled = random.choice(good_roles_in_game)
+            good_roles_in_game.remove(rerolled)
             good_roles_in_game.append("Tristan")
             good_roles_in_game.append("Iseult")
         else:
@@ -563,8 +601,7 @@ def get_player_info(player_names, variant="thavalon"):
     # role assignment
     random.shuffle(players)
 
-    good_players = players[:num_good]
-    evil_players = players[num_good:]
+    (good_players, evil_players) = get_role_assignments(players, num_good)
 
     player_of_role = dict()
 
@@ -657,6 +694,90 @@ def get_player_info(player_names, variant="thavalon"):
     data["players"] = [p.name for p in players]
     return data
 
+def get_role_assignments(players, num_good):
+    stats = stats_dal.get_stats()
+
+    # stats is a map of player name to {games: int, good: int, evil: int, target_ratio: int, jitter: int, randomness_coefficient: int}
+
+    # try to assign roles based on stats, if new player, assign randomly, and add to stats
+    processed_stats = {}
+    for player in players:
+        if player.name not in stats:
+            stats[player.name] = {
+                "games": 0,
+                "good": 0,
+                "evil": 0,
+                "target_ratio": 0.5, # long term target ratio (for being good)
+                "jitter": int(500 * random.random() + 250), # in basis points
+                "randomness_coefficient": int(9 * random.random() + 27) / 100, # percentage of randomness
+            }
+        
+        player_stats = stats[player.name]
+        
+        # calculate the target ratio
+        target_ratio = player_stats["target_ratio"]
+        jitter = player_stats["jitter"]
+        
+        target_ratio = target_ratio + random.randint(-jitter, jitter) / 10000
+        target_ratio = max(0, min(1, target_ratio))
+
+        # calculate the actual ratio
+        total_games = player_stats["games"]
+        good_games = player_stats["good"]
+        actual_ratio = good_games / total_games if total_games > 0 else 0.5
+
+        # add to processed stats
+        processed_stats[player.name] = {
+            # if we outside the randomness coefficient, we want to rank them based on how far they are from the target ratio
+            # otherwise, we are unconstrained
+            "constrained": abs(actual_ratio - target_ratio) > player_stats["randomness_coefficient"],
+            "rank": actual_ratio - target_ratio
+        }
+
+    min_rank = min(processed_stats.values(), key=lambda x: x["rank"])["rank"]
+    max_rank = max(processed_stats.values(), key=lambda x: x["rank"])["rank"]
+    mid_rank = (min_rank + max_rank) / 2
+
+    # sort players by the largest deviation from the target ratio
+    # checking if the ratio is within the randomness coefficient
+    # if so, rank them after other players
+    def ranker(player):
+        micro_jitter = random.randint(-100, 100) / 1000
+        rank = processed_stats[player.name]['rank']
+        constrained = processed_stats[player.name]['constrained']
+        if not constrained:
+            # print(f"Player {player.name} is inside the randomness coefficient")
+            # print(f"Rank: {processed_stats[player.name]['rank']}, Mid rank: {mid_rank}, Micro jitter: {micro_jitter}")
+            # print(f"Score: {mid_rank + rank + micro_jitter}")
+            return mid_rank + rank + micro_jitter
+        
+        # print(f"Player {player.name} is outside the randomness coefficient")
+        # print(f"Rank: {processed_stats[player.name]['rank']}, Mid rank: {mid_rank}, Micro jitter: {micro_jitter}")
+        # print(f"Score: {rank}")
+        return rank
+
+    # sort players by the largest deviation from the target ratio
+    # negative values indicate that the player is more evil than they should be
+    # positive values indicate that the player is more good than they should be
+    # so we want to sort in ascending order since good players are assigned first
+    players = sorted(players, key=ranker)
+    # print(list(map(lambda x: x.name, players)))
+
+    good_players = players[:num_good]
+    evil_players = players[num_good:]
+
+    # update stats
+    for player in good_players:
+        stats[player.name]["games"] += 1
+        stats[player.name]["good"] += 1
+    for player in evil_players:
+        stats[player.name]["games"] += 1
+        stats[player.name]["evil"] += 1
+
+    stats_dal.update_stats(stats)
+
+    return (good_players, evil_players)
+
 
 ###### ========= End Game logic ========= ######
 
@@ -664,8 +785,10 @@ def get_player_info(player_names, variant="thavalon"):
 
 
 def test():
-    players = ["Alice", "Bob", "Charlie", "David", "Eve"]
-    num_players = len(players)
+    all_players = ["Aditi", "Cailyn", "V", "Josh", "Elena", "Shapiro", "Daniel", "Yijin", "Rithik", "Rene", "Kyle", "Chris"]
+    num_players = random.randint(5, 10)
+    players = random.sample(all_players, num_players)
+
     if not (5 <= num_players <= 10):
         raise Exception("Invalid number of players")
 
@@ -675,11 +798,12 @@ def test():
     if len(players) != num_players:
         raise Exception("Duplicate player names")
 
-    computed_data = get_player_info(players, "esoteric")
-    print(computed_data["doNotOpen"])
-    for player in players:
-        print(computed_data[player])
+    computed_data = get_player_info(players, "thavalon")
+    # print(computed_data["doNotOpen"])
+    # for player in players:
+    #     print(computed_data[player])
 
 
 if __name__ == "__main__":
-    test()
+    for i in range(99_800_000):
+        test()
