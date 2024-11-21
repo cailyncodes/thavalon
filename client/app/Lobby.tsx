@@ -6,41 +6,12 @@ import { motion } from "framer-motion";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-type CommunicationChannel = "http";
-
-function getDomain(env?: string) {
-  env = env || "development";
-
-  if (env.startsWith("thavalon-")) {
-    return `api-${env}.up.railway.app`;
-  }
-  switch (env) {
-    case "development":
-      return "localhost:6464";
-    case "next":
-      return "next-api.thavalon.quest";
-    case "production":
-      return "api.thavalon.quest";
-    default:
-      throw new Error("Unknown environment");
-  }
-}
-
-function getUrl(env: string | undefined, channel: CommunicationChannel) {
-  const origin = getDomain(env);
-  return origin.includes("localhost")
-    ? `${channel}://${origin}`
-    : `${channel}s://${origin}`;
-}
-
-const Lobby = () => {
+const Lobby = ({ url }: { url: string }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [lobbies, setLobbies] = useState<any[]>([]);
   const [lobbyName, setLobbyName] = useState<string>("");
   const [gameStarted, setGameStarted] = useState<boolean>(false);
-
-  const API_URL = getUrl(process.env.NEXT_PUBLIC_ENVIRONMENT, "http");
 
   // Load username from LocalStorage
   useEffect(() => {
@@ -60,7 +31,7 @@ const Lobby = () => {
   // Fetch all active lobbies
   const fetchLobbies = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/lobby/`);
+      const response = await fetch(`${url}/api/lobby/`);
       if (response.ok) {
         const data = await response.json();
         // @ts-expect-error
@@ -91,7 +62,7 @@ const Lobby = () => {
   // Check if the user is already in a lobby
   const isUserInLobby = () => {
     return lobbies.some((lobby) =>
-      lobby.persons?.some((player: { name: string }) => player.name === username)
+      lobby.persons?.some((player: { name: string }) => player.name === username) && lobby.status !== "closed"
     );
   };
 
@@ -118,7 +89,7 @@ const Lobby = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/lobby/`, {
+      const response = await fetch(`${url}/api/lobby/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -156,7 +127,7 @@ const Lobby = () => {
 
   const startGame = async (lobbyId: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/game`, {
+      const response = await fetch(`${url}/api/game`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -193,7 +164,7 @@ const Lobby = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/lobby/${lobbyId}/join`, {
+      const response = await fetch(`${url}/api/lobby/${lobbyId}/join`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
