@@ -280,7 +280,7 @@ class Lancelot(Role):
         """
         Returns a description of the role
         """
-        return "Lancelot is a good player who can play Reversal cards."
+        return "Lancelot is a good player who can play Reversal cards. They are seen as Evil by Merlin."
 
     def information(self, game):
         """
@@ -559,7 +559,7 @@ class Mordred(Role):
             )
         )
         return [
-            "{}".format(player.person.name)
+            "{} is Evil".format(player.person.name)
             for player in other_evils
             if type(player.role) is not self.__class__
         ]
@@ -617,7 +617,7 @@ class Morgana(Role):
             )
         )
         return [
-            "{}".format(player.person.name)
+            "{} is Evil".format(player.person.name)
             for player in other_evils
             if type(player.role) is not self.__class__
         ]
@@ -675,7 +675,7 @@ class Maleagant(Role):
             )
         )
         return [
-            "{}".format(player.person.name)
+            "{} is Evil".format(player.person.name)
             for player in other_evils
             if type(player.role) is not self.__class__
         ]
@@ -736,7 +736,7 @@ class Agravain(Role):
             )
         )
         return [
-            "{}".format(player.person.name)
+            "{} is Evil".format(player.person.name)
             for player in other_evils
             if type(player.role) is not self.__class__
         ]
