@@ -63,6 +63,7 @@ const Lobby = () => {
       const response = await fetch(`${API_URL}/api/lobby/`);
       if (response.ok) {
         const data = await response.json();
+        // @ts-expect-error
         if (data.lobbies.find((lobby) =>
           lobby.persons?.some((player: { name: string }) => player.name === username)
         )?.status === "in-progress") {
@@ -394,6 +395,7 @@ const Lobby = () => {
                   <div key={lobby.lobby_id} className="p-6 bg-gray-800 rounded-lg shadow-md">
                     <p className="text-xl text-gray-100 mb-3">{lobby.name}</p>
                     <p className="text-sm text-gray-300">
+                      {/* @ts-expect-error */}
                       {lobby.persons?.map((player: { name: string }, index) => (
                         <span key={player.name}>
                           {player.name}
