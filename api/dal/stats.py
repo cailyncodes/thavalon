@@ -3,9 +3,9 @@ import json
 
 # check if running in docker
 if os.path.exists("/.dockerenv"):
-    FILE_PATH = os.path.join("/etc/stats", "stats.txt")
+    FILE_PATH = os.path.join("/etc/thavalon/status", "stats.txt")
 else:
-    FILE_PATH = os.path.join(os.path.dirname(__file__), "..", "volume", "stats.txt")
+    FILE_PATH = os.path.join(os.path.dirname(__file__), "..", "volume", "stat", "stats.txt")
 
 
 class StatsDAL:

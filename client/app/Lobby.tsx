@@ -63,16 +63,13 @@ const Lobby = () => {
       const response = await fetch(`${API_URL}/api/lobby/`);
       if (response.ok) {
         const data = await response.json();
-        setLobbies(data.lobbies || []);
-        console.log(data.lobbies, username, data.lobbies.find((lobby) =>
-          lobby.persons?.some((player: { name: string }) => player.name === username)
-        ));
         if (data.lobbies.find((lobby) =>
           lobby.persons?.some((player: { name: string }) => player.name === username)
         )?.status === "in-progress") {
           console.log("Game started");
           setGameStarted(true);
         }
+        setLobbies(data.lobbies || []);
       } else {
         console.error("Failed to fetch lobbies");
       }
