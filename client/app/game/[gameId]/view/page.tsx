@@ -162,6 +162,16 @@ const GameViewPage: React.FC = () => {
             <span>Copy Link</span>
           </button>
         </div>
+        <div className="mt-4 flex justify-center items-center space-x-4">
+          <button
+            onClick={() => {
+              window.location.assign("/");
+            }}
+            className="bg-purple-700 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center space-x-2"
+          >
+            <span>Return to lobby</span>
+          </button>
+        </div>
       </motion.section>
 
 
