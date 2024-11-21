@@ -21,6 +21,7 @@ services:
     volumes:
       - ./api:/code
       - ./api/volume:/etc/stats
+      - ./api/volume/thavalon:/etc/thavalon
     working_dir: /code
     command: ./entrypoint.sh
     env_file:
