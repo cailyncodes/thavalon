@@ -41,6 +41,8 @@ interface Person {
 interface Role {
   id: string;
   name: string;
+  description: string;
+  information: string[];
 }
 
 interface Player {
@@ -51,7 +53,7 @@ interface Player {
 interface GameData {
   id: string;
   players: Player[];
-  starting_person: Player;
+  starting_person: Person;
 }
 
 const GameViewPage: React.FC = () => {
