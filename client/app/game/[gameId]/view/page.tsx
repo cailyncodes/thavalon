@@ -59,7 +59,7 @@ interface GameData {
 const GameViewPage: React.FC = () => {
   const pathname = usePathname();
   const gameId = pathname.split("/")[2]; // Extract game_id from URL
-  const API_URL = getUrl(process.env.NEXT_PUBLIC_ENVIRONMENT, "http");
+  const API_URL = getUrl(process.env.RAILWAY_ENVIRONMENT_NAME, "http");
 
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [loading, setLoading] = useState(true);

@@ -40,7 +40,7 @@ const Lobby = () => {
   const [lobbyName, setLobbyName] = useState<string>("");
   const [gameStarted, setGameStarted] = useState<boolean>(false);
 
-  const API_URL = getUrl(process.env.NEXT_PUBLIC_ENVIRONMENT, "http");
+  const API_URL = getUrl(process.env.RAILWAY_ENVIRONMENT_NAME, "http");
 
   // Load username from LocalStorage
   useEffect(() => {
@@ -91,7 +91,7 @@ const Lobby = () => {
   // Check if the user is already in a lobby
   const isUserInLobby = () => {
     return lobbies.some((lobby) =>
-      lobby.persons?.some((player: { name: string }) => player.name === username)
+      lobby.persons?.some((player: { name: string }) => player.name === username) && lobby.status !== "closed"
     );
   };
 
