@@ -60,7 +60,7 @@ const GameViewPage: React.FC<{url: string}> = ({ url }) => {
     };
 
     fetchGameData();
-  }, [gameId, API_URL]);
+  }, [gameId, url]);
 
   const closeGame = async () => {
     try {
