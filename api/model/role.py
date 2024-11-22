@@ -610,6 +610,7 @@ class Morgana(Role):
                 lambda player: (player.role.allegiance() == Allegiance.BAD
                 and type(player.role) is not Colgrevance)
                 or type(player.role) is Titania,
+                players
             )
         )
         return [
@@ -668,6 +669,7 @@ class Maleagant(Role):
                 lambda player: (player.role.allegiance() == Allegiance.BAD
                 and type(player.role) is not Colgrevance)
                 or type(player.role) is Titania,
+                players
             )
         )
         return [
@@ -726,9 +728,9 @@ class Agravain(Role):
         players = game.players
         other_evils = list(
             filter(
-                lambda player: (player.role.allegiance() == Allegiance.BAD
-                and type(player.role) is not Colgrevance)
-                or type(player.role) is Titania,
+                lambda player: player.role.allegiance() == Allegiance.BAD
+                and type(player.role) is not Colgrevance,
+                players,
             )
         )
         return [
