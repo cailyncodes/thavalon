@@ -728,9 +728,10 @@ class Agravain(Role):
         players = game.players
         other_evils = list(
             filter(
-                lambda player: player.role.allegiance() == Allegiance.BAD
-                and type(player.role) is not Colgrevance,
-                players,
+                lambda player: (player.role.allegiance() == Allegiance.BAD
+                and type(player.role) is not Colgrevance)
+                or type(player.role) is Titania,
+                players
             )
         )
         return [
