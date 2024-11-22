@@ -546,15 +546,11 @@ class Mordred(Role):
         Returns information about the role
         """
         players = game.players
-        print("PLAYERS", players)
-        print(players[0])
-        print(players[0].role)
-        print(type(players[0].role) is globals()[self.name])
-        print(globals()[self.name], self.__class__)
         other_evils = list(
             filter(
-                lambda player: player.role.allegiance() == Allegiance.BAD
-                and type(player.role) is not Colgrevance,
+                lambda player: (player.role.allegiance() == Allegiance.BAD
+                and type(player.role) is not Colgrevance)
+                or type(player.role) is Titania,
                 players,
             )
         )
@@ -611,9 +607,9 @@ class Morgana(Role):
         players = game.players
         other_evils = list(
             filter(
-                lambda player: player.role.allegiance() == Allegiance.BAD
-                and type(player.role) is not Colgrevance,
-                players,
+                lambda player: (player.role.allegiance() == Allegiance.BAD
+                and type(player.role) is not Colgrevance)
+                or type(player.role) is Titania,
             )
         )
         return [
@@ -669,9 +665,9 @@ class Maleagant(Role):
         players = game.players
         other_evils = list(
             filter(
-                lambda player: player.role.allegiance() == Allegiance.BAD
-                and type(player.role) is not Colgrevance,
-                players,
+                lambda player: (player.role.allegiance() == Allegiance.BAD
+                and type(player.role) is not Colgrevance)
+                or type(player.role) is Titania,
             )
         )
         return [
@@ -730,9 +726,9 @@ class Agravain(Role):
         players = game.players
         other_evils = list(
             filter(
-                lambda player: player.role.allegiance() == Allegiance.BAD
-                and type(player.role) is not Colgrevance,
-                players,
+                lambda player: (player.role.allegiance() == Allegiance.BAD
+                and type(player.role) is not Colgrevance)
+                or type(player.role) is Titania,
             )
         )
         return [
