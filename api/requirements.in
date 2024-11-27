@@ -1,3 +1,4 @@
 aioredis
+filelock
 sanic
 sanic-ext
