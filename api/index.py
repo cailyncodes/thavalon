@@ -8,7 +8,6 @@ import sanic
 from sanic.response import json
 from sanic_ext import Extend
 
-from util.word import get_top_common_words
 from view.game import blueprint_game
 from view.stats import blueprint_stats
 
@@ -33,7 +32,6 @@ async def main_process_start(app: sanic.Sanic):
 @app.before_server_start
 async def before_server_start(app: sanic.Sanic, loop):
   print("Before server start")
-  get_top_common_words(500)
 
 @app.route("/")
 async def index(request):
