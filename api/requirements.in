@@ -1,3 +1,5 @@
 aioredis
+filelock
+nltk
 sanic
 sanic-ext

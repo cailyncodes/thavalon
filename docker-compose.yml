@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   web:
     image: node:20
@@ -23,8 +22,6 @@ services:
       - ./api/volume:/etc/thavalon
     working_dir: /code
     command: ./entrypoint.sh
-    env_file:
-      - ./api/.env.local
 
 volumes:
   node_modules:
