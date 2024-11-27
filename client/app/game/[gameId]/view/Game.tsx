@@ -190,7 +190,7 @@ const GameViewPage = ({ url }: GameViewPageProps) => {
       <ToastContainer />
       <GameHeader game={gameData} />
       <StartingPlayer person={gameData.starting_person} />
-      <QuestBoard missions={gameData.missions} numPlayers={gameData.num_players} />
+      <QuestBoard missions={gameData.missions} currentRound={gameData.mission_number} numPlayers={gameData.num_players} />
       {currentPlayer && currentMission && isOnMission ? (
         <VotingSection
           currentMission={currentMission}

@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mission, MissionVote } from "../../types";
 
 interface MissionBoardProps {
   numPlayers: number;
+  currentRound: number;
   missions: Mission[];
 }
 
@@ -25,10 +26,25 @@ function superShuffle<T>(list: T[]): T[] {
   );
 }
 
-const MissionBoard = ({ numPlayers, missions }: MissionBoardProps) => {
+const MissionBoard = ({ numPlayers, currentRound, missions }: MissionBoardProps) => {
   const [shuffledVotes, setShuffledVotes] = React.useState<MissionVote[][]>(
     missions.map((m) => superShuffle(Object.values(m.votes)))
   );
+
+  useEffect(() => {
+    if (currentRound < 2) return;
+    // update only the previous round's votes
+    setShuffledVotes((prev) => {
+      const newVotes = [...prev];
+      newVotes[currentRound - 2] = superShuffle(Object.values(missions[currentRound - 2].votes));
+      return newVotes;
+    });
+  // we only want to update the votes when the currentRound changes,
+  // since the missions array will cause the component to re-render
+  // even if the votes haven't changed
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentRound]);
+
 
   return (
     <div
@@ -116,7 +132,7 @@ const MissionBoard = ({ numPlayers, missions }: MissionBoardProps) => {
                       {(isSuccess || isFail) ?
                       <div>
                         <h3 className="font-semibold">Votes:</h3>
-                        {Object.values(mission.votes).length > 0 ? (
+                        {shuffledVotes[questIndex].length > 0 ? (
                           <ul className="list-disc list-inside">
                             {shuffledVotes[questIndex].map((vote, index) => (
                               <li key={index}>{vote}</li>
