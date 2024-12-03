@@ -254,9 +254,9 @@ ROLE_CONFIGS = [
     information_rules=[
       InformationRule(
         condition=lambda role, _, __:
-          role.allegiance == Allegiance.BAD and role.name != RoleName.MORDRED,
+          (role.allegiance == Allegiance.BAD and role.name != RoleName.MORDRED) or role.name == RoleName.LANCELOT,
         message="{name} is Evil."
-      )
+      ),
     ],
     rank_priority_map={9: 40}
   ),
@@ -419,6 +419,12 @@ ROLE_CONFIGS = [
       InformationRule(
         filter_roles=[RoleName.ISEULT, RoleName.OLDER_SIBLING],
         message="{name} is Iseult or the Older Sibling."
+      ),
+      InformationRule(
+        condition=lambda role, _, self_role:
+          (role.allegiance == Allegiance.BAD or role.name == RoleName.TITANIA)
+          and role.name != self_role.name,
+        message="{name} is Evil."
       ),
       InformationRule(
         unique=True,

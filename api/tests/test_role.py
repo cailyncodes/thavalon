@@ -116,6 +116,70 @@ class TestRoleBehaviors(unittest.TestCase):
       "Percival should see Merlin.",
     )
 
+  def test_merlin_sees_lancelot_and_bad_roles(self):
+    """Verify Merlin sees Lancelot and all bad roles."""
+    # Test with Lancelot and all bad roles
+    game = Game(
+      name="Test Game",
+      players=[
+        Player(Person("Player1"), self.roles[RoleName.MERLIN]),
+        Player(Person("Player2"), self.roles[RoleName.LANCELOT]),
+        Player(Person("Player3"), self.roles[RoleName.MORDRED]),
+        Player(Person("Player4"), self.roles[RoleName.MORGANA]),
+        Player(Person("Player5"), self.roles[RoleName.MAELAGANT]),
+        Player(Person("Player6"), self.roles[RoleName.AGRAVAINE]),
+      ],
+      persons=[],
+    )
+    merlin = next(
+      p for p in game.players if p.role.name == RoleName.MERLIN
+    )
+    information = merlin.role.information(game)
+
+    expected_messages = {
+      "Player2 is Evil.",
+      "Player4 is Evil.",
+      "Player5 is Evil.",
+      "Player6 is Evil.",
+    }
+
+    self.assertEqual(
+      len(information),
+      4,
+      "Merlin should see Lancelot and all bad roles.",
+    )
+    for message in information:
+      self.assertIn(
+        message,
+        expected_messages,
+        f"Merlin should see Lancelot and all bad roles: '{message}'",
+      )
+
+    # Test with only Lancelot in the game
+    game = Game(
+      name="Test Game",
+      players=[
+        Player(Person("Player1"), self.roles[RoleName.MERLIN]),
+        Player(Person("Player2"), self.roles[RoleName.LANCELOT]),
+      ],
+      persons=[],
+    )
+    merlin = next(
+      p for p in game.players if p.role.name == RoleName.MERLIN
+    )
+    information = merlin.role.information(game)
+
+    self.assertEqual(
+      len(information),
+      1,
+      "Merlin should see only Lancelot if no bad roles are present.",
+    )
+    self.assertIn(
+      "Player2 is Evil.",
+      information,
+      "Merlin should see Lancelot.",
+    )
+
   def test_iseult_and_tristan_pairing(self):
     """Verify Iseult and Tristan are always both in the game or both not."""
     # Test with both Iseult and Tristan
@@ -411,8 +475,8 @@ class TestRoleBehaviors(unittest.TestCase):
 
     self.assertEqual(
       len(information),
-      0,
-      "Jealous Ex should see no one if neither Older Sibling nor lovers are in the game.",
+      1,
+      "Jealous Ex should see no one (except evil players) if neither Older Sibling nor lovers are in the game.",
     )
 
   def test_unicorn_sees_lovers_or_older_sibling_and_mordred(self):
