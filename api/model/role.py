@@ -485,8 +485,7 @@ ROLE_CONFIGS = [
         message="Lancelot is NOT in the game."
       ),
       InformationRule(
-        unique=True,
-        condition=lambda _, game, __: any(role.name == RoleName.MAELAGANT for role in game.get_roles()),
+        condition=lambda role, _, __: role.name == RoleName.MAELAGANT,
         message="{name} is Maelagant."
       ),
       InformationRule(
