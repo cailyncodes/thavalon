@@ -47,6 +47,7 @@ class Game:
     mission_number (int): The current mission number
     proposals (List[Proposal]): The proposals in the game
     missions (List[Mission]): The missions in the game
+    num_players (int): The number of players in the game
   """
 
   def __init__(
@@ -104,6 +105,7 @@ class Game:
       "mission_number": self.mission_number,
       "proposals": [proposal.to_dict() for proposal in self.proposals],
       "missions": [mission.to_dict() for mission in self.missions],
+      "num_players": self.num_players,
     }
 
   @classmethod
