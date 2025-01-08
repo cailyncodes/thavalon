@@ -1,17 +1,13 @@
-import enum
 import random
-from typing import Callable, Dict, List, Optional, Tuple, Union
-from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
-from typing import TYPE_CHECKING
+from model.allegiance import Allegiance
+from model.information_rule import InformationRule
+from model.role_config import RoleConfig
+from model.role_name import RoleName
 
 if TYPE_CHECKING:
   from model.game import Game
-
-
-class Allegiance(enum.Enum):
-  GOOD = "Good"
-  BAD = "Bad"
 
 
 ALLOWABLE_ALLEGIANCE_COUNTS = {
@@ -22,49 +18,6 @@ ALLOWABLE_ALLEGIANCE_COUNTS = {
   9: {Allegiance.GOOD: 6, Allegiance.BAD: 3},
   10: {Allegiance.GOOD: 6, Allegiance.BAD: 4},
 }
-
-class RoleName(enum.Enum):
-  NIMUE = "Nimue"
-  TRISTAN = "Tristan"
-  ISEULT = "Iseult"
-  MERLIN = "Merlin"
-  PERCIVAL = "Percival"
-  LANCELOT = "Lancelot"
-  ARTHUR = "Arthur"
-  TITANIA = "Titania"
-  MORDRED = "Mordred"
-  MORGANA = "Morgana"
-  MAELAGANT = "Maelagant"
-  AGRAVAINE = "Agravaine"
-  COLGREVANCE = "Colgrevance"
-  JEALOUS_EX = "Jealous Ex"
-  OLDER_SIBLING = "Older Sibling"
-  UNICORN = "Unicorn"
-  POLITICIAN = "Politician"
-
-
-@dataclass
-class InformationRule:
-  condition: Optional[Callable[['Role', 'Game', 'Role'], bool]] = None
-  filter_roles: Optional[List[RoleName]] = None
-  unique: bool = False
-  message: str = ""
-  # The message can include placeholders like {name} or {role_name}
-
-
-@dataclass
-class RoleConfig:
-  name: RoleName
-  allegiance: Allegiance
-  description: str
-  information_rules: List[InformationRule] = field(default_factory=list)
-  min_players: int = 0
-  max_players: int = 10
-  required_roles: List[RoleName] = field(default_factory=list)
-  disallowed_roles: List[RoleName] = field(default_factory=list)
-  supported_variants: Union[List[str], str] = "ALL"
-  rank_priority_map: dict[int, int] = field(default_factory=dict)
-
 
 class Role:
   def __init__(

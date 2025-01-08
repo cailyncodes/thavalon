@@ -1,3 +1,5 @@
+// src/types.ts
+
 export interface Role {
   name: string; // Name of the role
   description: string; // Description of the role
@@ -9,11 +11,11 @@ export interface Person {
 }
 
 export interface Player {
-  person: Person
-  role: Role
+  person: Person;
+  role: Role;
 }
 
-export type ProposalVote = "Option 1" | "Option 2" | "Yes" | "No";
+export type ProposalVote = "Yes" | "No";
 
 export type MissionVote = "Success" | "Fail" | "Reverse" | "Cancel";
 

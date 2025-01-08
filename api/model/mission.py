@@ -1,41 +1,30 @@
-from enum import Enum
+# models/mission.py
 
+from typing import Any, Dict, List, Optional
 from model.person import Person
+from model.mission_vote import MissionVote
 
-class MissionVote(Enum):
-    """
-    Enum-like class for mission votes
-    """
-    SUCCESS = "Success"
-    FAIL = "Fail"
-    REVERSE = "Reverse"
-    CANCEL = "Cancel"
-
-    @classmethod
-    def from_string(cls, string):
-      """
-      Converts a string to a ProposalVote
-      """
-      return {
-        "Success": cls.SUCCESS,
-        "Fail": cls.FAIL,
-        "Reverse": cls.REVERSE,
-        "Cancel": cls.CANCEL
-      }[string]
 
 class Mission:
     """
-    Class representing a single mission
+    Represents a single mission in the game.
     """
 
-    def __init__(self, round_number: int, required_team_size: int, team: list[Person] | None=None, votes: dict[Person, MissionVote] | None=None, result: bool | None=None):
+    def __init__(
+        self,
+        round_number: int,
+        required_team_size: int,
+        team: Optional[List[Person]] = None,
+        votes: Optional[Dict[Person, MissionVote]] = None,
+        result: Optional[bool] = None
+    ):
         self.round_number = round_number
         self.required_team_size = required_team_size
         self.team = team or []
         self.votes = votes or {}
         self.result = result
 
-    def assign_team(self, team: list["Person"]):
+    def assign_team(self, team: List[Person]):
         """
         Assigns a team to the mission.
         """
@@ -43,7 +32,7 @@ class Mission:
             raise ValueError(f"Team size must be {self.required_team_size}, got {len(team)}.")
         self.team = team
 
-    def cast_vote(self, voter: "Person", vote: MissionVote):
+    def cast_vote(self, voter: Person, vote: MissionVote):
         """
         Casts a vote for the mission.
         """
@@ -69,9 +58,9 @@ class Mission:
             self.result = False
         return self.result
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """
-        Returns a dictionary representation of the mission
+        Serializes the mission to a dictionary.
         """
         return {
             "round_number": self.round_number,
@@ -80,16 +69,18 @@ class Mission:
             "votes": {person.name: vote.value for person, vote in self.votes.items()},
             "result": self.result
         }
-    
+
     @classmethod
-    def from_json(cls, data):
+    def from_json(cls, data: Dict[str, Any]) -> 'Mission':
         """
-        Updates the mission from a dictionary representation
+        Deserializes a mission from a dictionary.
         """
-        round_number = data["round_number"] if "round_number" in data else 1
-        required_team_size = data["required_team_size"] if "required_team_size" in data else 1
-        team = [Person.from_json(player) for player in data["team"]] if "team" in data else []
-        votes = {Person.from_json({"name": person}): MissionVote(vote) for person, vote in data["votes"].items()} if "votes" in data else {}
-        result = data["result"] if data["result"] is not None else None if "result" in data else None
-        mission = cls(round_number, required_team_size, team, votes, result)
-        return mission
+        round_number = data.get("round_number", 1)
+        required_team_size = data.get("required_team_size", 1)
+        team = [Person.from_json(player) for player in data.get("team", [])]
+        votes = {
+            Person.from_json({"name": person}): MissionVote.from_string(vote)
+            for person, vote in data.get("votes", {}).items()
+        }
+        result = data.get("result")
+        return cls(round_number, required_team_size, team, votes, result)

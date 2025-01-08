@@ -3,21 +3,21 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
-import QuestBoard from "../../../components/game/Board";
-import NoGameData from "../../../components/game/Empty";
-import GameHeader from "../../../components/game/Header";
-import LoadingState from "../../../components/game/Loading";
-import PlayerDetails from "../../../components/game/PlayerDetail";
-import VotingSection from "../../../components/game/Voting";
+import QuestBoard from "../../../../components/game/Board";
+import NoGameData from "../../../../components/game/Empty";
+import GameHeader from "../../../../components/game/Header";
+import LoadingState from "../../../../components/game/Loading";
+import PlayerDetails from "../../../../components/game/PlayerDetail";
+import VotingSection from "../../../../components/game/Voting";
 import { Game, MissionVote, Person, Player } from "../../../types";
-import DangerZone from "../../../components/game/DangerZone";
-import PlayerList from "../../../components/game/PlayerList";
-import MissionProposalManager from "../../../components/game/MissionProposal";
-import StartingPlayer from "../../../components/game/StartingPlayer";
-import ProposalVoting from "../../../components/game/ProposalVoting";
+import DangerZone from "../../../../components/game/DangerZone";
+import PlayerList from "../../../../components/game/PlayerList";
+import MissionProposalManager from "../../../../components/game/MissionProposal";
+import StartingPlayer from "../../../../components/game/StartingPlayer";
+import ProposalVoting from "../../../../components/game/ProposalVoting";
 
 import "react-toastify/dist/ReactToastify.css";
-import MostRecentProposalOutcome from "../../../components/game/MostRecentProposalOutcome";
+import MostRecentProposalOutcome from "../../../../components/game/MostRecentProposalOutcome";
 
 interface GameViewPageProps {
   url: string;

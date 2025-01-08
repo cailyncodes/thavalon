@@ -1,45 +1,40 @@
-"""
-Class representing a player
-"""
+# models/player.py
 
+from typing import TYPE_CHECKING, Any, Dict
+
+if TYPE_CHECKING:
+    from model.game import Game
 
 from model.person import Person
 from model.role import Role
 
 
 class Player:
-  """
-  Class representing a player
-
-  Attributes:
-    person (Person): The person that is the player
-    role (Role): The role of the player
-  """
-
-  def __init__(self, person: "Person", role: "Role"):
-    self.person = person
-    self.role = role
-
-  def __str__(self):
-    return f"{self.person.name} is a {self.role.name}"
-
-  def __repr__(self):
-    return self.__str__()
-
-  def to_dict(self, game):
     """
-    Returns a dictionary representation of the player
+    Represents a player in the game.
     """
-    return {
-      "person": self.person.to_dict(),
-      "role": self.role.to_dict(game),
-    }
 
-  @classmethod
-  def from_json(cls, data):
-    """
-    Updates the player from a dictionary representation
-    """
-    person = Person.from_json(data["person"])
-    role = Role.from_json(data["role"])
-    return cls(person, role)
+    def __init__(self, person: Person, role: Role = None):
+        self.person = person
+        self.role = role
+
+    def to_dict(self, game: 'Game') -> Dict[str, Any]:
+        """
+        Serializes the player to a dictionary.
+        """
+        return {
+            "person": self.person.to_dict(),
+            "role": self.role.to_dict(game) if self.role else None
+        }
+
+    @classmethod
+    def from_json(cls, data: Dict[str, Any]) -> 'Player':
+        """
+        Deserializes a player from a dictionary.
+        """
+        person = Person.from_json(data["person"])
+        # Role assignment is handled separately
+        return cls(person=person)
+
+    def __repr__(self):
+        return f"Player(person={self.person.name}, role={self.role})"

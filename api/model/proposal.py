@@ -1,34 +1,24 @@
-from enum import Enum
+# models/proposal.py
 
+from typing import Any, Dict, List, Optional
 from model.person import Person
+from model.proposal_vote import ProposalVote
 
-class ProposalVote(Enum):
-    """
-    Enum-like class for proposal votes
-    """
-    OPTION_1 = "Option 1"
-    OPTION_2 = "Option 2"
-    YES = "Yes"
-    NO = "No"
-
-    @classmethod
-    def from_string(cls, string):
-      """
-      Converts a string to a ProposalVote
-      """
-      return {
-        "Option 1": cls.OPTION_1,
-        "Option 2": cls.OPTION_2,
-        "Yes": cls.YES,
-        "No": cls.NO
-      }[string]
 
 class Proposal:
     """
-    Class representing a single proposal
+    Represents a single proposal in the game.
     """
 
-    def __init__(self, round_number: int, proposal_number: int, proposer: "Person", team=None, votes: dict[Person, ProposalVote] | None=None, passed=None):
+    def __init__(
+        self,
+        round_number: int,
+        proposal_number: int,
+        proposer: Person,
+        team: Optional[List[Person]] = None,
+        votes: Optional[Dict[Person, ProposalVote]] = None,
+        passed: Optional[bool] = None
+    ):
         self.round_number = round_number
         self.proposal_number = proposal_number
         self.proposer = proposer
@@ -36,41 +26,37 @@ class Proposal:
         self.votes = votes or {}
         self.passed = passed
 
-    def cast_vote(self, voter: "Person", option: ProposalVote):
+    def cast_vote(self, voter: Person, option: ProposalVote):
         """
         Casts a vote for the proposal.
         """
+        if option not in ProposalVote:
+            raise ValueError(f"Invalid vote option: {option}")
         self.votes[voter] = option
 
     def finalize(self):
         """
-        Finalizes the proposal, determining the winning option.
+        Finalizes the proposal, determining if it passed based on majority 'Yes' votes.
         """
         if self.passed is not None:
-            return self
+            return self.passed
 
-        vote_counts: dict[ProposalVote, int] = {}
+        vote_counts: Dict[ProposalVote, int] = {}
         for vote in self.votes.values():
             vote_counts[vote] = vote_counts.get(vote, 0) + 1
 
-        # Handle tie logic
-        if self.round_number == 1:
-            # In round 1, ties default to Option 2
-            if len(vote_counts) == 1 or vote_counts.get(ProposalVote.OPTION_1, 0) == vote_counts.get(ProposalVote.OPTION_2, 0):
-                self.passed = self.proposal_number == 2
-            else:
-                self.passed = max(vote_counts, key=vote_counts.get) == (ProposalVote.OPTION_1 if self.proposal_number == 1 else ProposalVote.OPTION_2)
-        else:
-            # In other rounds, ties do not pass
-            counts = list(vote_counts.keys())
-            if len(counts) > 1 and vote_counts[counts[0]] == vote_counts[counts[1]]:
-                self.passed = False
-            else:
-                self.passed = max(vote_counts, key=vote_counts.get) == ProposalVote.YES
+        yes_votes = vote_counts.get(ProposalVote.YES, 0)
+        no_votes = vote_counts.get(ProposalVote.NO, 0)
+
+        # Determine if the proposal passes by majority 'Yes' votes
+        self.passed = yes_votes > no_votes
 
         return self.passed
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Serializes the proposal to a dictionary.
+        """
         return {
             "round_number": self.round_number,
             "proposal_number": self.proposal_number,
@@ -79,13 +65,19 @@ class Proposal:
             "votes": {person.name: vote.value for person, vote in self.votes.items()},
             "passed": self.passed,
         }
-    
+
     @classmethod
-    def from_json(cls, data):
-        round_number = data["round_number"] if "round_number" in data else 1
-        proposal_number = data["proposal_number"] if "proposal_number" in data else 1
+    def from_json(cls, data: Dict[str, Any]) -> 'Proposal':
+        """
+        Deserializes a proposal from a dictionary.
+        """
+        round_number = data.get("round_number", 1)
+        proposal_number = data.get("proposal_number", 1)
         proposer = Person.from_json(data["proposer"]) if "proposer" in data else None
-        team = [Person.from_json(person) for person in data["team"]] if "team" in data else []
-        votes = {Person.from_json({"name": person}): ProposalVote(vote) for person, vote in data["votes"].items()} if "votes" in data else {}
-        passed = data["passed"] if "passed" in data else None
+        team = [Person.from_json(person) for person in data.get("team", [])]
+        votes = {
+            Person.from_json({"name": person}): ProposalVote.from_string(vote)
+            for person, vote in data.get("votes", {}).items()
+        }
+        passed = data.get("passed")
         return cls(round_number, proposal_number, proposer, team, votes, passed)
